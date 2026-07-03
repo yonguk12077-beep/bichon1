@@ -84,6 +84,8 @@ const DEFAULT_SCHEDULE = {
   rangeEnd: "",
 };
 const STORAGE_KEY = "bichon-fanpage-state-v1";
+const SHARED_WRITE_TOKEN_KEY = "bichon-shared-write-token";
+const SHARED_STATE_API_URL = "/api/state";
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
 const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
@@ -170,26 +172,30 @@ function createEmptyStoredState() {
   };
 }
 
-function readStoredState() {
-  if (typeof window === "undefined") return createEmptyStoredState();
+function normalizeStoredState(state) {
+  return {
+    ...createEmptyStoredState(),
+    ...(state && typeof state === "object" ? state : {}),
+    galleryItems: {
+      ...createEmptyGallery(),
+      ...(state?.galleryItems || {}),
+    },
+  };
+}
 
-  try {
-    const rawState = window.localStorage.getItem(STORAGE_KEY);
-    if (!rawState) return createEmptyStoredState();
+function hasStoredContent(state) {
+  return Boolean(
+    Object.keys(state.schedules || {}).length ||
+    (state.galleryItems?.[FANART_GALLERY_ID] || []).length ||
+    (state.userClips || []).length
+  );
+}
 
-    const parsedState = JSON.parse(rawState);
+function mergeStoredState(localState, sharedState) {
+  const normalizedLocal = normalizeStoredState(localState);
+  const normalizedShared = normalizeStoredState(sharedState);
 
-    return {
-      ...createEmptyStoredState(),
-      ...parsedState,
-      galleryItems: {
-        ...createEmptyGallery(),
-        ...(parsedState.galleryItems || {}),
-      },
-    };
-  } catch {
-    return createEmptyStoredState();
-  }
+  return hasStoredContent(normalizedShared) ? normalizedShared : normalizedLocal;
 }
 
 function saveStoredState(nextState) {
@@ -200,6 +206,52 @@ function saveStoredState(nextState) {
   } catch {
     // Large images can exceed the browser storage limit. Keep the live page working.
   }
+}
+
+function readStoredState() {
+  if (typeof window === "undefined") return createEmptyStoredState();
+
+  try {
+    const rawState = window.localStorage.getItem(STORAGE_KEY);
+    return rawState ? normalizeStoredState(JSON.parse(rawState)) : createEmptyStoredState();
+  } catch {
+    return createEmptyStoredState();
+  }
+}
+
+function readSharedWriteToken() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(SHARED_WRITE_TOKEN_KEY) || "";
+}
+
+function saveSharedWriteToken(token) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SHARED_WRITE_TOKEN_KEY, token);
+}
+
+async function requestSharedState() {
+  const response = await fetch(SHARED_STATE_API_URL, {
+    headers: { accept: "application/json" },
+  });
+
+  if (!response.ok) throw new Error("Shared state request failed");
+
+  return normalizeStoredState(await response.json());
+}
+
+async function saveSharedState(state, writeToken) {
+  if (!writeToken) return;
+
+  const response = await fetch(SHARED_STATE_API_URL, {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      "x-shared-write-token": writeToken,
+    },
+    body: JSON.stringify(normalizeStoredState(state)),
+  });
+
+  if (!response.ok) throw new Error("Shared state save failed");
 }
 
 function readImageAsDataUrl(file) {
@@ -547,6 +599,8 @@ function App() {
   const [latestVods, setLatestVods] = useState(FALLBACK_VODS);
   const [vodStatus, setVodStatus] = useState("loading");
   const [userClips, setUserClips] = useState(() => storedState.userClips || []);
+  const [sharedStateStatus, setSharedStateStatus] = useState("loading");
+  const [sharedWriteToken, setSharedWriteToken] = useState(() => readSharedWriteToken());
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -628,12 +682,65 @@ function App() {
   }, []);
 
   useEffect(() => {
-    saveStoredState({
+    let alive = true;
+
+    const loadSharedState = async () => {
+      try {
+        const sharedState = await requestSharedState();
+
+        if (!alive) return;
+
+        const mergedState = mergeStoredState(readStoredState(), sharedState);
+        setSchedules(mergedState.schedules);
+        setGalleryItems(mergedState.galleryItems);
+        setUserClips(mergedState.userClips);
+        setSharedStateStatus("ready");
+      } catch {
+        if (alive) setSharedStateStatus("offline");
+      }
+    };
+
+    loadSharedState();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextState = {
       schedules,
       galleryItems,
       userClips,
-    });
-  }, [schedules, galleryItems, userClips]);
+    };
+
+    saveStoredState(nextState);
+
+    if (sharedStateStatus !== "ready" || !sharedWriteToken) return undefined;
+
+    const saveTimer = window.setTimeout(() => {
+      saveSharedState(nextState, sharedWriteToken).catch(() => {});
+    }, 500);
+
+    return () => {
+      window.clearTimeout(saveTimer);
+    };
+  }, [schedules, galleryItems, userClips, sharedStateStatus, sharedWriteToken]);
+
+  const requestSharedWriteToken = useCallback(() => {
+    const currentToken = sharedWriteToken.trim();
+    if (currentToken) return currentToken;
+
+    const nextToken = window.prompt("공용 저장 비밀번호를 입력해주세요. 저장한 일정과 팬아트를 다른 사람도 볼 수 있게 올릴 때 필요합니다.");
+    const trimmedToken = nextToken?.trim() || "";
+
+    if (trimmedToken) {
+      saveSharedWriteToken(trimmedToken);
+      setSharedWriteToken(trimmedToken);
+    }
+
+    return trimmedToken;
+  }, [sharedWriteToken]);
 
   const openInternalPage = (route) => {
     window.history.pushState({}, "", route);
@@ -687,6 +794,7 @@ function App() {
     event.preventDefault();
 
     if (!editingDate) return;
+    if (!requestSharedWriteToken()) return;
 
     const existingSchedule = schedules[editingDate.key];
     const groupId = existingSchedule?.groupId || `schedule-${Date.now()}-${editingDate.key}`;
@@ -722,6 +830,7 @@ function App() {
 
   const deleteSchedule = () => {
     if (!editingDate) return;
+    if (!requestSharedWriteToken()) return;
 
     setSchedules((prev) => {
       const next = { ...prev };
@@ -795,6 +904,10 @@ function App() {
     const images = files.filter((file) => file.type.startsWith("image/"));
 
     if (!images.length) return;
+    if (!requestSharedWriteToken()) {
+      input.value = "";
+      return;
+    }
 
     const nextImages = (await Promise.all(images.map(async (file) => {
       try {
@@ -822,6 +935,8 @@ function App() {
   };
 
   const deleteGalleryImage = (categoryId, imageId) => {
+    if (!requestSharedWriteToken()) return;
+
     setGalleryItems((prev) => {
       return {
         ...prev,
@@ -845,6 +960,8 @@ function App() {
       setClipError("http:// 또는 https://로 시작하는 링크를 넣어주세요.");
       return;
     }
+
+    if (!requestSharedWriteToken()) return;
 
     const vodId = getVodIdFromUrl(url);
     let nextClip = {
