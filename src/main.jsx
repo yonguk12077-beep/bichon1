@@ -26,6 +26,8 @@ const MENU_ITEMS = [
   { id: "notice", label: "NOTICE" },
   { id: "clips", label: "HIGHLIGHTS" },
   { id: "gallery", label: "GALLERY" },
+  { id: "events", label: "EVENT", route: "/events" },
+  { id: "debt", label: "업보청산", route: "/debt" },
   { id: "contact", label: "COMMUNITY" },
 ];
 
@@ -35,6 +37,8 @@ const MENU_DESCRIPTIONS = {
   notice: "최근 공지",
   clips: "하이라이트",
   gallery: "갤러리",
+  events: "이벤트",
+  debt: "업보 청산 시트",
   schedule: "방송 일정",
   contact: "커뮤니티",
 };
@@ -60,7 +64,44 @@ const HISTORY = [
 const DEFAULT_CLIPS = [];
 const FANART_GALLERY_ID = "fanart";
 const FANART_ROUTE = "/fanart";
+const EVENT_PAGE_ID = "events";
+const EVENT_ROUTE = "/events";
+const DEBT_PAGE_ID = "debt";
+const DEBT_ROUTE = "/debt";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
+
+const INTERNAL_ROUTES = {
+  [FANART_ROUTE]: FANART_GALLERY_ID,
+  [EVENT_ROUTE]: EVENT_PAGE_ID,
+  [DEBT_ROUTE]: DEBT_PAGE_ID,
+};
+
+const SHEET_PAGES = {
+  [EVENT_PAGE_ID]: {
+    number: "07",
+    eyebrow: "EVENT SHEET",
+    title: "이벤트",
+    description: "방송 이벤트 일정과 참여 안내를 한눈에 볼 수 있는 공개 시트입니다.",
+    columns: ["날짜", "이벤트", "상태", "메모"],
+    rows: [
+      ["준비중", "시청자 참여 이벤트", "대기", "확정되는 대로 업데이트"],
+      ["상시", "팬 참여 아이디어", "접수", "방송 중 나온 아이디어 정리"],
+      ["상시", "기념일 이벤트", "예정", "세부 내용 조율 중"],
+    ],
+  },
+  [DEBT_PAGE_ID]: {
+    number: "08",
+    eyebrow: "CHECK SHEET",
+    title: "업보청산",
+    description: "나중에 처리할 업보와 완료 상태를 정리해두는 공개 시트입니다.",
+    columns: ["항목", "내용", "상태", "메모"],
+    rows: [
+      ["업보", "방송 중 약속한 미션 정리", "대기", "완료 시 상태 변경"],
+      ["청산", "컨텐츠 후보와 벌칙 정리", "정리중", "우선순위 조율"],
+      ["기록", "완료된 업보 보관", "상시", "히스토리용"],
+    ],
+  },
+};
 
 const COMMUNITY_LINKS = [
   { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop },
@@ -71,11 +112,13 @@ const COMMUNITY_LINKS = [
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MONDAY_WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
-const BROADCAST_TYPES = ["방송 진행", "휴방", "공지 대기 (미정)"];
+const BROADCAST_TYPES = ["방송 진행", "장기 컨텐츠", "이벤트", "휴방", "공지 대기 (미정)"];
 const DEFAULT_SCHEDULE = {
   type: "공지 대기 (미정)",
   startTime: "",
   memo: "",
+  rangeStart: "",
+  rangeEnd: "",
 };
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
@@ -350,6 +393,42 @@ function getDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getPageFromPath(pathname) {
+  return INTERNAL_ROUTES[pathname] || "index";
+}
+
+function parseDateKey(dateKey) {
+  if (!dateKey) return null;
+
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) return null;
+
+  return new Date(year, month - 1, day);
+}
+
+function getDateKeysBetween(startKey, endKey) {
+  const startDate = parseDateKey(startKey);
+  const endDate = parseDateKey(endKey || startKey);
+
+  if (!startDate || !endDate || startDate > endDate) return [startKey];
+
+  const keys = [];
+  const cursor = new Date(startDate);
+
+  while (cursor <= endDate) {
+    keys.push(getDateKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return keys;
+}
+
+function formatShortDateKey(dateKey) {
+  const date = parseDateKey(dateKey);
+
+  return date ? `${date.getMonth() + 1}/${date.getDate()}` : "";
+}
+
 function formatKoreanDate(date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
@@ -442,9 +521,7 @@ function App() {
   const [latestNotice, setLatestNotice] = useState(FALLBACK_NOTICE);
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [noticeStatus, setNoticeStatus] = useState("loading");
-  const [galleryPage, setGalleryPage] = useState(() =>
-    window.location.pathname === FANART_ROUTE ? FANART_GALLERY_ID : "index"
-  );
+  const [activePage, setActivePage] = useState(() => getPageFromPath(window.location.pathname));
   const [galleryItems, setGalleryItems] = useState(() => createEmptyGallery());
   const [clipComposerOpen, setClipComposerOpen] = useState(false);
   const [clipDraftUrl, setClipDraftUrl] = useState("");
@@ -521,21 +598,35 @@ function App() {
   }, [loadLatestVod]);
 
   useEffect(() => {
-    const syncFanartRoute = () => {
-      setGalleryPage(window.location.pathname === FANART_ROUTE ? FANART_GALLERY_ID : "index");
+    const syncInternalRoute = () => {
+      setActivePage(getPageFromPath(window.location.pathname));
     };
 
-    window.addEventListener("popstate", syncFanartRoute);
+    window.addEventListener("popstate", syncInternalRoute);
 
     return () => {
-      window.removeEventListener("popstate", syncFanartRoute);
+      window.removeEventListener("popstate", syncInternalRoute);
     };
   }, []);
 
+  const openInternalPage = (route) => {
+    window.history.pushState({}, "", route);
+    setActivePage(getPageFromPath(route));
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const closeInternalPage = () => {
+    window.history.pushState({}, "", "/");
+    setActivePage("index");
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const jumpToSection = (sectionId) => {
-    if (window.location.pathname === FANART_ROUTE) {
+    if (activePage !== "index") {
       window.history.pushState({}, "", "/");
-      setGalleryPage("index");
+      setActivePage("index");
       window.setTimeout(() => {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 0);
@@ -611,14 +702,12 @@ function App() {
   };
 
   const openFanartPage = () => {
-    window.history.pushState({}, "", FANART_ROUTE);
-    setGalleryPage(FANART_GALLERY_ID);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    openInternalPage(FANART_ROUTE);
   };
 
   const closeGalleryPage = () => {
     window.history.pushState({}, "", "/");
-    setGalleryPage("index");
+    setActivePage("index");
     window.setTimeout(() => {
       document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 0);
