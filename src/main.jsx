@@ -1,4 +1,4 @@
-﻿/* eslint-disable react-refresh/only-export-components */
+﻿﻿/* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "./style.css";
@@ -1196,7 +1196,7 @@ function App() {
         </section>
 
         <section className="page-section community-section" id="contact">
-          <SectionTitle number="06" title="함께해요, 솜송이!" eyebrow="COMMUNITY" />
+          <SectionTitle number="06" title="함께해요, 솜뭉치!" eyebrow="COMMUNITY" />
           <div className="community-grid">
             {COMMUNITY_LINKS.map((link) => (
               <a href={link.href} target="_blank" rel="noreferrer" key={link.title}>
