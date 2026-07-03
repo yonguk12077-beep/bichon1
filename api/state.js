@@ -34,6 +34,13 @@ function getRedisConfig() {
   };
 }
 
+function getSupabaseConfig() {
+  return {
+    url: (process.env.SUPABASE_URL || "").replace(/\/$/, ""),
+    key: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "",
+  };
+}
+
 function isWriteAuthorized(request) {
   const writeToken = process.env.SHARED_WRITE_TOKEN || "";
 
@@ -68,6 +75,61 @@ async function redisCommand(command) {
   return redisResponse.json();
 }
 
+async function fetchSupabaseState() {
+  const { url, key } = getSupabaseConfig();
+  if (!url || !key) return null;
+
+  const targetUrl = `${url}/rest/v1/bichon_state?id=eq.default`;
+  const response = await fetch(targetUrl, {
+    method: "GET",
+    headers: {
+      apikey: key,
+      authorization: `Bearer ${key}`,
+      accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("Supabase table 'bichon_state' not found. Please create the table in Supabase first.");
+    }
+    throw new Error(`Supabase request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (Array.isArray(data) && data.length > 0) {
+    return data[0].state;
+  }
+  return null;
+}
+
+async function saveSupabaseState(state) {
+  const { url, key } = getSupabaseConfig();
+  if (!url || !key) {
+    throw new Error("Supabase is not configured.");
+  }
+
+  const targetUrl = `${url}/rest/v1/bichon_state`;
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      authorization: `Bearer ${key}`,
+      "content-type": "application/json",
+      prefer: "resolution=merge-duplicates",
+    },
+    body: JSON.stringify({
+      id: "default",
+      state: state,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase save failed with status ${response.status}`);
+  }
+}
+
 async function readRequestBody(request) {
   if (request.body) {
     if (typeof request.body === "string") return JSON.parse(request.body);
@@ -94,11 +156,29 @@ function sendJson(response, statusCode, payload) {
 
 export default async function handler(request, response) {
   try {
-    if (request.method === "GET") {
-      const { result } = await redisCommand(["GET", STATE_KEY]);
-      const state = result ? JSON.parse(result) : createEmptyState();
+    const supabaseConfig = getSupabaseConfig();
+    const redisConfig = getRedisConfig();
 
-      sendJson(response, 200, normalizeState(state));
+    const isSupabaseEnabled = !!(supabaseConfig.url && supabaseConfig.key);
+    const isRedisEnabled = !!(redisConfig.url && redisConfig.token);
+
+    if (!isSupabaseEnabled && !isRedisEnabled) {
+      sendJson(response, 503, {
+        error: "Shared storage is not configured. Please set environment variables for Vercel KV (Redis) or Supabase.",
+      });
+      return;
+    }
+
+    if (request.method === "GET") {
+      let state = null;
+      if (isSupabaseEnabled) {
+        state = await fetchSupabaseState();
+      } else if (isRedisEnabled) {
+        const { result } = await redisCommand(["GET", STATE_KEY]);
+        state = result ? JSON.parse(result) : null;
+      }
+
+      sendJson(response, 200, normalizeState(state || createEmptyState()));
       return;
     }
 
@@ -110,7 +190,12 @@ export default async function handler(request, response) {
 
       const state = normalizeState(await readRequestBody(request));
 
-      await redisCommand(["SET", STATE_KEY, JSON.stringify(state)]);
+      if (isSupabaseEnabled) {
+        await saveSupabaseState(state);
+      } else if (isRedisEnabled) {
+        await redisCommand(["SET", STATE_KEY, JSON.stringify(state)]);
+      }
+
       sendJson(response, 200, state);
       return;
     }

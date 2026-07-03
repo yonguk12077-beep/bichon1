@@ -1,6 +1,8 @@
-﻿﻿/* eslint-disable react-refresh/only-export-components */
+﻿/* eslint-disable react-refresh/only-export-components */
 import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
+import { deleteFanart, fetchFanart, uploadFanart } from "./lib/fanart.js";
+import { deleteScheduleGroup, fetchSchedules, saveScheduleGroup } from "./lib/schedules.js";
 import "./style.css";
 
 const LINKS = {
@@ -83,9 +85,7 @@ const DEFAULT_SCHEDULE = {
   rangeStart: "",
   rangeEnd: "",
 };
-const STORAGE_KEY = "bichon-fanpage-state-v1";
-const SHARED_WRITE_TOKEN_KEY = "bichon-shared-write-token";
-const SHARED_STATE_API_URL = "/api/state";
+const CLIPS_STORAGE_KEY = "bichon-user-clips-v1";
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
 const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
@@ -164,104 +164,25 @@ function createEmptyGallery() {
   };
 }
 
-function createEmptyStoredState() {
-  return {
-    schedules: {},
-    galleryItems: createEmptyGallery(),
-    userClips: [],
-  };
-}
-
-function normalizeStoredState(state) {
-  return {
-    ...createEmptyStoredState(),
-    ...(state && typeof state === "object" ? state : {}),
-    galleryItems: {
-      ...createEmptyGallery(),
-      ...(state?.galleryItems || {}),
-    },
-  };
-}
-
-function hasStoredContent(state) {
-  return Boolean(
-    Object.keys(state.schedules || {}).length ||
-    (state.galleryItems?.[FANART_GALLERY_ID] || []).length ||
-    (state.userClips || []).length
-  );
-}
-
-function mergeStoredState(localState, sharedState) {
-  const normalizedLocal = normalizeStoredState(localState);
-  const normalizedShared = normalizeStoredState(sharedState);
-
-  return hasStoredContent(normalizedShared) ? normalizedShared : normalizedLocal;
-}
-
-function saveStoredState(nextState) {
-  if (typeof window === "undefined") return;
+function readUserClips() {
+  if (typeof window === "undefined") return [];
 
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+    const rawClips = window.localStorage.getItem(CLIPS_STORAGE_KEY);
+    return rawClips ? JSON.parse(rawClips) : [];
   } catch {
-    // Large images can exceed the browser storage limit. Keep the live page working.
+    return [];
   }
 }
 
-function readStoredState() {
-  if (typeof window === "undefined") return createEmptyStoredState();
+function saveUserClips(clips) {
+  if (typeof window === "undefined") return;
 
   try {
-    const rawState = window.localStorage.getItem(STORAGE_KEY);
-    return rawState ? normalizeStoredState(JSON.parse(rawState)) : createEmptyStoredState();
+    window.localStorage.setItem(CLIPS_STORAGE_KEY, JSON.stringify(clips));
   } catch {
-    return createEmptyStoredState();
+    // Ignore storage quota errors for clip links.
   }
-}
-
-function readSharedWriteToken() {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(SHARED_WRITE_TOKEN_KEY) || "";
-}
-
-function saveSharedWriteToken(token) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SHARED_WRITE_TOKEN_KEY, token);
-}
-
-async function requestSharedState() {
-  const response = await fetch(SHARED_STATE_API_URL, {
-    headers: { accept: "application/json" },
-  });
-
-  if (!response.ok) throw new Error("Shared state request failed");
-
-  return normalizeStoredState(await response.json());
-}
-
-async function saveSharedState(state, writeToken) {
-  if (!writeToken) return;
-
-  const response = await fetch(SHARED_STATE_API_URL, {
-    method: "PUT",
-    headers: {
-      "content-type": "application/json",
-      "x-shared-write-token": writeToken,
-    },
-    body: JSON.stringify(normalizeStoredState(state)),
-  });
-
-  if (!response.ok) throw new Error("Shared state save failed");
-}
-
-function readImageAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 function normalizeUrl(url) {
@@ -578,29 +499,24 @@ function getVideoEmbedUrl(url) {
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
-  const [storedState] = useState(() => readStoredState());
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [monthDate, setMonthDate] = useState(today);
-  const [schedules, setSchedules] = useState(() => storedState.schedules || {});
+  const [schedules, setSchedules] = useState({});
   const [editingDate, setEditingDate] = useState(null);
   const [scheduleDraft, setScheduleDraft] = useState(DEFAULT_SCHEDULE);
   const [latestNotice, setLatestNotice] = useState(FALLBACK_NOTICE);
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [noticeStatus, setNoticeStatus] = useState("loading");
   const [activePage, setActivePage] = useState(() => getPageFromPath(window.location.pathname));
-  const [galleryItems, setGalleryItems] = useState(() => ({
-    ...createEmptyGallery(),
-    ...(storedState.galleryItems || {}),
-  }));
+  const [galleryItems, setGalleryItems] = useState(() => createEmptyGallery());
   const [clipComposerOpen, setClipComposerOpen] = useState(false);
   const [clipDraftUrl, setClipDraftUrl] = useState("");
   const [clipError, setClipError] = useState("");
   const [latestVods, setLatestVods] = useState(FALLBACK_VODS);
   const [vodStatus, setVodStatus] = useState("loading");
-  const [userClips, setUserClips] = useState(() => storedState.userClips || []);
-  const [sharedStateStatus, setSharedStateStatus] = useState("loading");
-  const [sharedWriteToken, setSharedWriteToken] = useState(() => readSharedWriteToken());
+  const [userClips, setUserClips] = useState(() => readUserClips());
+  const [fanpageStatus, setFanpageStatus] = useState("loading");
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -684,23 +600,29 @@ function App() {
   useEffect(() => {
     let alive = true;
 
-    const loadSharedState = async () => {
+    const loadFanpageData = async () => {
       try {
-        const sharedState = await requestSharedState();
+        setFanpageStatus("loading");
+
+        const [nextSchedules, nextFanart] = await Promise.all([
+          fetchSchedules(),
+          fetchFanart(),
+        ]);
 
         if (!alive) return;
 
-        const mergedState = mergeStoredState(readStoredState(), sharedState);
-        setSchedules(mergedState.schedules);
-        setGalleryItems(mergedState.galleryItems);
-        setUserClips(mergedState.userClips);
-        setSharedStateStatus("ready");
+        setSchedules(nextSchedules);
+        setGalleryItems({
+          ...createEmptyGallery(),
+          [FANART_GALLERY_ID]: nextFanart,
+        });
+        setFanpageStatus("ready");
       } catch {
-        if (alive) setSharedStateStatus("offline");
+        if (alive) setFanpageStatus("offline");
       }
     };
 
-    loadSharedState();
+    loadFanpageData();
 
     return () => {
       alive = false;
@@ -708,39 +630,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const nextState = {
-      schedules,
-      galleryItems,
-      userClips,
-    };
-
-    saveStoredState(nextState);
-
-    if (sharedStateStatus !== "ready" || !sharedWriteToken) return undefined;
-
-    const saveTimer = window.setTimeout(() => {
-      saveSharedState(nextState, sharedWriteToken).catch(() => {});
-    }, 500);
-
-    return () => {
-      window.clearTimeout(saveTimer);
-    };
-  }, [schedules, galleryItems, userClips, sharedStateStatus, sharedWriteToken]);
-
-  const requestSharedWriteToken = useCallback(() => {
-    const currentToken = sharedWriteToken.trim();
-    if (currentToken) return currentToken;
-
-    const nextToken = window.prompt("공용 저장 비밀번호를 입력해주세요. 저장한 일정과 팬아트를 다른 사람도 볼 수 있게 올릴 때 필요합니다.");
-    const trimmedToken = nextToken?.trim() || "";
-
-    if (trimmedToken) {
-      saveSharedWriteToken(trimmedToken);
-      setSharedWriteToken(trimmedToken);
-    }
-
-    return trimmedToken;
-  }, [sharedWriteToken]);
+    saveUserClips(userClips);
+  }, [userClips]);
 
   const openInternalPage = (route) => {
     window.history.pushState({}, "", route);
@@ -790,11 +681,10 @@ function App() {
     setScheduleDraft((prev) => ({ ...prev, [field]: value }));
   };
 
-  const saveSchedule = (event) => {
+  const saveSchedule = async (event) => {
     event.preventDefault();
 
     if (!editingDate) return;
-    if (!requestSharedWriteToken()) return;
 
     const existingSchedule = schedules[editingDate.key];
     const groupId = existingSchedule?.groupId || `schedule-${Date.now()}-${editingDate.key}`;
@@ -802,51 +692,45 @@ function App() {
     const rangeEnd = scheduleDraft.rangeEnd || rangeStart;
     const rangeKeys = getDateKeysBetween(rangeStart, rangeEnd);
 
-    setSchedules((prev) => {
-      const next = { ...prev };
-
-      Object.keys(next).forEach((key) => {
-        if (existingSchedule?.groupId && next[key]?.groupId === existingSchedule.groupId) {
-          delete next[key];
-        }
+    try {
+      const updatedSchedules = await saveScheduleGroup({
+        groupId,
+        existingGroupId: existingSchedule?.groupId,
+        type: scheduleDraft.type,
+        startTime: scheduleDraft.startTime.trim(),
+        memo: scheduleDraft.memo.trim(),
+        rangeStart,
+        rangeEnd,
+        rangeKeys,
       });
 
-      rangeKeys.forEach((key) => {
-        next[key] = {
-          groupId,
-          type: scheduleDraft.type,
-          startTime: scheduleDraft.startTime.trim(),
-          memo: scheduleDraft.memo.trim(),
-          rangeStart,
-          rangeEnd,
-        };
-      });
-
-      return next;
-    });
-
-    closeScheduleEditor();
+      setSchedules(updatedSchedules);
+      setFanpageStatus("ready");
+      closeScheduleEditor();
+    } catch {
+      window.alert("일정 저장에 실패했습니다. 공용 저장소 설정을 확인해주세요.");
+    }
   };
 
-  const deleteSchedule = () => {
+  const deleteSchedule = async () => {
     if (!editingDate) return;
-    if (!requestSharedWriteToken()) return;
+    if (!window.confirm("이 일정을 삭제할까요?")) return;
 
-    setSchedules((prev) => {
-      const next = { ...prev };
-      const targetGroupId = next[editingDate.key]?.groupId;
+    const targetGroupId = schedules[editingDate.key]?.groupId;
 
-      Object.keys(next).forEach((key) => {
-        if (targetGroupId && next[key]?.groupId === targetGroupId) {
-          delete next[key];
-        }
-      });
+    if (!targetGroupId) {
+      closeScheduleEditor();
+      return;
+    }
 
-      delete next[editingDate.key];
-      return next;
-    });
-
-    closeScheduleEditor();
+    try {
+      const updatedSchedules = await deleteScheduleGroup(targetGroupId);
+      setSchedules(updatedSchedules);
+      setFanpageStatus("ready");
+      closeScheduleEditor();
+    } catch {
+      window.alert("일정 삭제에 실패했습니다.");
+    }
   };
 
   const renderSchedule = (dateKey) => {
@@ -904,45 +788,44 @@ function App() {
     const images = files.filter((file) => file.type.startsWith("image/"));
 
     if (!images.length) return;
-    if (!requestSharedWriteToken()) {
-      input.value = "";
-      return;
+
+    try {
+      const uploadedImages = (await Promise.all(
+        images.map((file) => uploadFanart(file))
+      )).filter(Boolean);
+
+      if (!uploadedImages.length) return;
+
+      setGalleryItems((prev) => ({
+        ...prev,
+        [categoryId]: [
+          ...uploadedImages,
+          ...(prev[categoryId] || []),
+        ],
+      }));
+    } catch {
+      window.alert("팬아트 업로드에 실패했습니다. 공용 저장소 설정을 확인해주세요.");
     }
-
-    const nextImages = (await Promise.all(images.map(async (file) => {
-      try {
-        return {
-          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          src: await readImageAsDataUrl(file),
-        };
-      } catch {
-        return null;
-      }
-    }))).filter(Boolean);
-
-    if (!nextImages.length) return;
-
-    setGalleryItems((prev) => ({
-      ...prev,
-      [categoryId]: [
-        ...nextImages,
-        ...(prev[categoryId] || []),
-      ],
-    }));
 
     input.value = "";
   };
 
-  const deleteGalleryImage = (categoryId, imageId) => {
-    if (!requestSharedWriteToken()) return;
+  const deleteGalleryImage = async (categoryId, imageId) => {
+    const targetItem = (galleryItems[categoryId] || []).find((item) => item.id === imageId);
 
-    setGalleryItems((prev) => {
-      return {
+    if (!targetItem) return;
+    if (!window.confirm("이 팬아트를 삭제할까요?")) return;
+
+    try {
+      await deleteFanart(targetItem);
+
+      setGalleryItems((prev) => ({
         ...prev,
         [categoryId]: (prev[categoryId] || []).filter((item) => item.id !== imageId),
-      };
-    });
+      }));
+    } catch {
+      window.alert("팬아트 삭제에 실패했습니다.");
+    }
   };
 
   const addClipLink = async (event) => {
@@ -960,8 +843,6 @@ function App() {
       setClipError("http:// 또는 https://로 시작하는 링크를 넣어주세요.");
       return;
     }
-
-    if (!requestSharedWriteToken()) return;
 
     const vodId = getVodIdFromUrl(url);
     let nextClip = {
@@ -1169,6 +1050,12 @@ function App() {
         <section className="page-section schedule-section" id="schedule">
           <div className="section-row">
             <SectionTitle number="02" title="방송 일정" eyebrow="SCHEDULE" />
+            {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
+            {fanpageStatus === "offline" && (
+              <small className="fanpage-status fanpage-status-offline">
+                공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
+              </small>
+            )}
           </div>
 
           <div className="schedule-showcase">

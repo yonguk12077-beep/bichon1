@@ -466,6 +466,16 @@ a {
   margin-bottom: 0;
 }
 
+.fanpage-status {
+  color: var(--muted, #888);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.fanpage-status-offline {
+  color: #c0392b;
+}
+
 .section-title {
   display: flex;
   align-items: flex-start;
