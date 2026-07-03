@@ -83,6 +83,7 @@ const DEFAULT_SCHEDULE = {
   rangeStart: "",
   rangeEnd: "",
 };
+const STORAGE_KEY = "bichon-fanpage-state-v1";
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
 const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
@@ -159,6 +160,56 @@ function createEmptyGallery() {
   return {
     [FANART_GALLERY_ID]: [],
   };
+}
+
+function createEmptyStoredState() {
+  return {
+    schedules: {},
+    galleryItems: createEmptyGallery(),
+    userClips: [],
+  };
+}
+
+function readStoredState() {
+  if (typeof window === "undefined") return createEmptyStoredState();
+
+  try {
+    const rawState = window.localStorage.getItem(STORAGE_KEY);
+    if (!rawState) return createEmptyStoredState();
+
+    const parsedState = JSON.parse(rawState);
+
+    return {
+      ...createEmptyStoredState(),
+      ...parsedState,
+      galleryItems: {
+        ...createEmptyGallery(),
+        ...(parsedState.galleryItems || {}),
+      },
+    };
+  } catch {
+    return createEmptyStoredState();
+  }
+}
+
+function saveStoredState(nextState) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+  } catch {
+    // Large images can exceed the browser storage limit. Keep the live page working.
+  }
+}
+
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function normalizeUrl(url) {
@@ -475,23 +526,27 @@ function getVideoEmbedUrl(url) {
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
+  const [storedState] = useState(() => readStoredState());
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [monthDate, setMonthDate] = useState(today);
-  const [schedules, setSchedules] = useState({});
+  const [schedules, setSchedules] = useState(() => storedState.schedules || {});
   const [editingDate, setEditingDate] = useState(null);
   const [scheduleDraft, setScheduleDraft] = useState(DEFAULT_SCHEDULE);
   const [latestNotice, setLatestNotice] = useState(FALLBACK_NOTICE);
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [noticeStatus, setNoticeStatus] = useState("loading");
   const [activePage, setActivePage] = useState(() => getPageFromPath(window.location.pathname));
-  const [galleryItems, setGalleryItems] = useState(() => createEmptyGallery());
+  const [galleryItems, setGalleryItems] = useState(() => ({
+    ...createEmptyGallery(),
+    ...(storedState.galleryItems || {}),
+  }));
   const [clipComposerOpen, setClipComposerOpen] = useState(false);
   const [clipDraftUrl, setClipDraftUrl] = useState("");
   const [clipError, setClipError] = useState("");
   const [latestVods, setLatestVods] = useState(FALLBACK_VODS);
   const [vodStatus, setVodStatus] = useState("loading");
-  const [userClips, setUserClips] = useState([]);
+  const [userClips, setUserClips] = useState(() => storedState.userClips || []);
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -571,6 +626,14 @@ function App() {
       window.removeEventListener("popstate", syncInternalRoute);
     };
   }, []);
+
+  useEffect(() => {
+    saveStoredState({
+      schedules,
+      galleryItems,
+      userClips,
+    });
+  }, [schedules, galleryItems, userClips]);
 
   const openInternalPage = (route) => {
     window.history.pushState({}, "", route);
@@ -726,32 +789,40 @@ function App() {
     }, 0);
   };
 
-  const addGalleryFiles = (event, categoryId) => {
+  const addGalleryFiles = async (event, categoryId) => {
+    const input = event.currentTarget;
     const files = Array.from(event.target.files || []);
     const images = files.filter((file) => file.type.startsWith("image/"));
 
     if (!images.length) return;
 
+    const nextImages = (await Promise.all(images.map(async (file) => {
+      try {
+        return {
+          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          src: await readImageAsDataUrl(file),
+        };
+      } catch {
+        return null;
+      }
+    }))).filter(Boolean);
+
+    if (!nextImages.length) return;
+
     setGalleryItems((prev) => ({
       ...prev,
       [categoryId]: [
-        ...images.map((file) => ({
-          id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-          title: file.name.replace(/\.[^/.]+$/, ""),
-          src: URL.createObjectURL(file),
-        })),
+        ...nextImages,
         ...(prev[categoryId] || []),
       ],
     }));
 
-    event.target.value = "";
+    input.value = "";
   };
 
   const deleteGalleryImage = (categoryId, imageId) => {
     setGalleryItems((prev) => {
-      const target = prev[categoryId]?.find((item) => item.id === imageId);
-      if (target?.src?.startsWith("blob:")) URL.revokeObjectURL(target.src);
-
       return {
         ...prev,
         [categoryId]: (prev[categoryId] || []).filter((item) => item.id !== imageId),
