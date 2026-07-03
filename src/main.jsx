@@ -848,7 +848,6 @@ function App() {
                         ×
                       </button>
                       <img src={image.src} alt={image.title} />
-                      <strong>{image.title}</strong>
                     </article>
                   ))}
                 </div>
@@ -1120,7 +1119,6 @@ function App() {
                 onClick={openFanartPage}
               >
                 <img src={image.src} alt={image.title} />
-                {activeGalleryItems.length ? <span>{image.title}</span> : null}
               </button>
             ))}
           </div>

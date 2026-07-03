@@ -787,22 +787,6 @@ a {
   transform: scale(1.04);
 }
 
-.gallery-tile span {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  max-width: calc(100% - 20px);
-  padding: 6px 9px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.84);
-  color: #147fb7;
-  font-size: 11px;
-  font-weight: 1000;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .gallery-page-shell {
   display: grid;
   gap: 18px;
@@ -890,16 +874,6 @@ a {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
-}
-
-.fanart-card strong {
-  display: block;
-  padding: 11px 12px 13px;
-  color: #30273a;
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fanart-delete-button {
