@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/soop-sch/:path*",
+      "destination": "https://sch.sooplive.com/:path*"
+    },
+    {
+      "source": "/soop-channel/:path*",
+      "destination": "https://api-channel.sooplive.com/:path*"
+    },
+    {
+      "source": "/soop-vod/:path*",
+      "destination": "https://vod.sooplive.com/:path*"
+    },
+    {
+      "source": "/soop-station/:path*",
+      "destination": "https://www.sooplive.com/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
