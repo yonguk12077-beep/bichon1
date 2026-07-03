@@ -26,8 +26,6 @@ const MENU_ITEMS = [
   { id: "notice", label: "NOTICE" },
   { id: "clips", label: "HIGHLIGHTS" },
   { id: "gallery", label: "GALLERY" },
-  { id: "events", label: "EVENT", route: "/events" },
-  { id: "debt", label: "업보청산", route: "/debt" },
   { id: "contact", label: "COMMUNITY" },
 ];
 
@@ -37,8 +35,6 @@ const MENU_DESCRIPTIONS = {
   notice: "최근 공지",
   clips: "하이라이트",
   gallery: "갤러리",
-  events: "이벤트",
-  debt: "업보 청산 시트",
   schedule: "방송 일정",
   contact: "커뮤니티",
 };
@@ -64,43 +60,10 @@ const HISTORY = [
 const DEFAULT_CLIPS = [];
 const FANART_GALLERY_ID = "fanart";
 const FANART_ROUTE = "/fanart";
-const EVENT_PAGE_ID = "events";
-const EVENT_ROUTE = "/events";
-const DEBT_PAGE_ID = "debt";
-const DEBT_ROUTE = "/debt";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
 
 const INTERNAL_ROUTES = {
   [FANART_ROUTE]: FANART_GALLERY_ID,
-  [EVENT_ROUTE]: EVENT_PAGE_ID,
-  [DEBT_ROUTE]: DEBT_PAGE_ID,
-};
-
-const SHEET_PAGES = {
-  [EVENT_PAGE_ID]: {
-    number: "07",
-    eyebrow: "EVENT SHEET",
-    title: "이벤트",
-    description: "방송 이벤트 일정과 참여 안내를 한눈에 볼 수 있는 공개 시트입니다.",
-    columns: ["날짜", "이벤트", "상태", "메모"],
-    rows: [
-      ["준비중", "시청자 참여 이벤트", "대기", "확정되는 대로 업데이트"],
-      ["상시", "팬 참여 아이디어", "접수", "방송 중 나온 아이디어 정리"],
-      ["상시", "기념일 이벤트", "예정", "세부 내용 조율 중"],
-    ],
-  },
-  [DEBT_PAGE_ID]: {
-    number: "08",
-    eyebrow: "CHECK SHEET",
-    title: "업보청산",
-    description: "나중에 처리할 업보와 완료 상태를 정리해두는 공개 시트입니다.",
-    columns: ["항목", "내용", "상태", "메모"],
-    rows: [
-      ["업보", "방송 중 약속한 미션 정리", "대기", "완료 시 상태 변경"],
-      ["청산", "컨텐츠 후보와 벌칙 정리", "정리중", "우선순위 조율"],
-      ["기록", "완료된 업보 보관", "상시", "히스토리용"],
-    ],
-  },
 };
 
 const COMMUNITY_LINKS = [
@@ -112,7 +75,7 @@ const COMMUNITY_LINKS = [
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MONDAY_WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
-const BROADCAST_TYPES = ["방송 진행", "장기 컨텐츠", "이벤트", "휴방", "공지 대기 (미정)"];
+const BROADCAST_TYPES = ["방송 진행", "장기 컨텐츠", "휴방", "공지 대기 (미정)"];
 const DEFAULT_SCHEDULE = {
   type: "공지 대기 (미정)",
   startTime: "",
@@ -616,13 +579,6 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const closeInternalPage = () => {
-    window.history.pushState({}, "", "/");
-    setActivePage("index");
-    setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const jumpToSection = (sectionId) => {
     if (activePage !== "index") {
       window.history.pushState({}, "", "/");
@@ -644,9 +600,15 @@ function App() {
 
   const openScheduleEditor = (date) => {
     const dateKey = getDateKey(date);
+    const existingSchedule = schedules[dateKey];
 
     setEditingDate({ date, key: dateKey });
-    setScheduleDraft(schedules[dateKey] || DEFAULT_SCHEDULE);
+    setScheduleDraft({
+      ...DEFAULT_SCHEDULE,
+      ...(existingSchedule || {}),
+      rangeStart: existingSchedule?.rangeStart || dateKey,
+      rangeEnd: existingSchedule?.rangeEnd || "",
+    });
   };
 
   const closeScheduleEditor = () => {
@@ -663,14 +625,34 @@ function App() {
 
     if (!editingDate) return;
 
-    setSchedules((prev) => ({
-      ...prev,
-      [editingDate.key]: {
-        type: scheduleDraft.type,
-        startTime: scheduleDraft.startTime.trim(),
-        memo: scheduleDraft.memo.trim(),
-      },
-    }));
+    const existingSchedule = schedules[editingDate.key];
+    const groupId = existingSchedule?.groupId || `schedule-${Date.now()}-${editingDate.key}`;
+    const rangeStart = scheduleDraft.rangeStart || editingDate.key;
+    const rangeEnd = scheduleDraft.rangeEnd || rangeStart;
+    const rangeKeys = getDateKeysBetween(rangeStart, rangeEnd);
+
+    setSchedules((prev) => {
+      const next = { ...prev };
+
+      Object.keys(next).forEach((key) => {
+        if (existingSchedule?.groupId && next[key]?.groupId === existingSchedule.groupId) {
+          delete next[key];
+        }
+      });
+
+      rangeKeys.forEach((key) => {
+        next[key] = {
+          groupId,
+          type: scheduleDraft.type,
+          startTime: scheduleDraft.startTime.trim(),
+          memo: scheduleDraft.memo.trim(),
+          rangeStart,
+          rangeEnd,
+        };
+      });
+
+      return next;
+    });
 
     closeScheduleEditor();
   };
@@ -680,6 +662,14 @@ function App() {
 
     setSchedules((prev) => {
       const next = { ...prev };
+      const targetGroupId = next[editingDate.key]?.groupId;
+
+      Object.keys(next).forEach((key) => {
+        if (targetGroupId && next[key]?.groupId === targetGroupId) {
+          delete next[key];
+        }
+      });
+
       delete next[editingDate.key];
       return next;
     });
@@ -692,13 +682,36 @@ function App() {
 
     if (!schedule) return null;
 
+    const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
+    const rangeLabel = isRange ? `${formatShortDateKey(schedule.rangeStart)} - ${formatShortDateKey(schedule.rangeEnd)}` : "";
+
     return (
-      <span className="schedule-preview">
+      <span className={`schedule-preview ${isRange ? "is-range" : ""} ${schedule.type === "휴방" ? "is-off" : ""}`}>
         <span>{schedule.type}</span>
+        {rangeLabel && <small>{rangeLabel}</small>}
         {schedule.startTime && <small>{schedule.startTime}</small>}
         {schedule.memo && <em>{schedule.memo}</em>}
       </span>
     );
+  };
+
+  const getScheduleStateClass = (dateKey) => {
+    const schedule = schedules[dateKey];
+    if (!schedule) return "";
+
+    const classes = [];
+    const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
+
+    if (schedule.type === "휴방") classes.push("is-off");
+
+    if (isRange) {
+      classes.push("is-range-day");
+      if (dateKey === schedule.rangeStart) classes.push("is-range-start");
+      else if (dateKey === schedule.rangeEnd) classes.push("is-range-end");
+      else classes.push("is-range-middle");
+    }
+
+    return classes.join(" ");
   };
 
   const openFanartPage = () => {
@@ -797,7 +810,7 @@ function App() {
     setClipComposerOpen(false);
   };
 
-  if (galleryPage !== "index") {
+  if (activePage === FANART_GALLERY_ID) {
     return (
       <div className="app-shell">
         <main className="site-frame fanart-page-frame">
@@ -983,7 +996,7 @@ function App() {
 
                   return (
                     <button
-                      className={`vertical-week-row ${item.key === todayKey ? "today" : ""}`}
+                      className={`vertical-week-row ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
                       type="button"
                       key={item.key}
                       onClick={() => openScheduleEditor(item.date)}
@@ -1016,7 +1029,7 @@ function App() {
                 {monthDays.map((item, index) =>
                   item ? (
                     <button
-                      className={`day ${item.key === todayKey ? "today" : ""}`}
+                      className={`day ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
                       key={item.key}
                       onClick={() => openScheduleEditor(item.date)}
                     >
@@ -1216,6 +1229,27 @@ function App() {
                 placeholder="예: 마크 하코 대결"
               />
             </label>
+
+            <div className="schedule-range-fields">
+              <label>
+                장기 컨텐츠 시작일
+                <input
+                  type="date"
+                  value={scheduleDraft.rangeStart}
+                  onChange={(event) => updateDraft("rangeStart", event.target.value)}
+                />
+              </label>
+              <label>
+                장기 컨텐츠 종료일
+                <input
+                  type="date"
+                  value={scheduleDraft.rangeEnd}
+                  min={scheduleDraft.rangeStart || editingDate.key}
+                  onChange={(event) => updateDraft("rangeEnd", event.target.value)}
+                  placeholder="선택 안 하면 하루 일정"
+                />
+              </label>
+            </div>
 
             <div className="modal-actions">
               <button className="delete-button" type="button" onClick={deleteSchedule}>

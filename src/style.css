@@ -1013,6 +1013,16 @@ a {
   background: #eef9ff;
 }
 
+.vertical-week-row.is-range-day {
+  background: linear-gradient(90deg, #dff5ff, #f7fcff);
+  border-left: 4px solid #28a9ec;
+}
+
+.vertical-week-row.is-off {
+  background: #fff1f1;
+  border-left: 4px solid #ef5350;
+}
+
 .vertical-week-row span {
   display: grid;
   gap: 3px;
@@ -1132,6 +1142,28 @@ button.day {
   outline-offset: -2px;
 }
 
+.day.is-range-day {
+  background: linear-gradient(90deg, #dff5ff 0%, #f7fcff 100%);
+}
+
+.day.is-range-start {
+  border-left: 4px solid #28a9ec;
+}
+
+.day.is-range-middle {
+  border-left: 0;
+  border-right: 0;
+}
+
+.day.is-range-end {
+  border-right: 4px solid #28a9ec;
+}
+
+.day.is-off {
+  background: #fff1f1;
+  border-color: #ffd3d3;
+}
+
 .schedule-preview {
   display: grid;
   gap: 4px;
@@ -1144,10 +1176,20 @@ button.day {
   max-width: 100%;
   padding: 3px 7px;
   border-radius: 999px;
-  background: #f0e4fa;
+  background: #e4f7ff;
   color: #1598da;
   font-size: 11px;
   font-weight: 900;
+}
+
+.schedule-preview.is-range span {
+  background: #28a9ec;
+  color: #fff;
+}
+
+.schedule-preview.is-off span {
+  background: #ef5350;
+  color: #fff;
 }
 
 .schedule-preview small,
@@ -1270,6 +1312,13 @@ button.day {
   color: #62566e;
   font-size: 14px;
   font-weight: 900;
+}
+
+.schedule-range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
 }
 
 .schedule-modal input,
@@ -1467,6 +1516,10 @@ button.day {
   }
 
   .modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-range-fields {
     grid-template-columns: 1fr;
   }
 }
