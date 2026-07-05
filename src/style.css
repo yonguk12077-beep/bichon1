@@ -768,7 +768,8 @@ a {
 
 .hotclip-preview-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
+  justify-content: center;
   gap: 14px;
 }
 
@@ -834,54 +835,33 @@ a {
 }
 
 .hotclip-page-grid {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 492px));
-  justify-content: center;
-  gap: 18px;
-}
-
-.hotclip-card {
-  min-height: 0;
-  aspect-ratio: 1.46;
-  padding: 0;
-  border-radius: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
 }
 
 .hotclip-card a {
   position: absolute;
   inset: 0;
   z-index: 1;
-  padding: 30px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   color: #fff;
 }
 
-.hotclip-card span {
-  top: 26px;
-  left: 26px;
-  padding: 10px 20px;
-  font-size: 20px;
-}
-
-.hotclip-card strong {
-  font-size: 28px;
-  line-height: 1.25;
-}
-
 .hotclip-delete-button {
   position: absolute;
-  top: 18px;
-  right: 18px;
+  top: 9px;
+  right: 9px;
   z-index: 3;
-  width: 56px;
-  height: 56px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(41, 23, 54, 0.74);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 38px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
 }
@@ -1641,37 +1621,6 @@ button.day {
   .hotclip-link-form button,
   .fanart-add-button {
     width: 100%;
-  }
-
-  .hotclip-page-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hotclip-card {
-    aspect-ratio: 1.46;
-  }
-
-  .hotclip-card a {
-    padding: 22px;
-  }
-
-  .hotclip-card span {
-    top: 18px;
-    left: 18px;
-    padding: 8px 16px;
-    font-size: 17px;
-  }
-
-  .hotclip-card strong {
-    font-size: 23px;
-  }
-
-  .hotclip-delete-button {
-    top: 14px;
-    right: 14px;
-    width: 46px;
-    height: 46px;
-    font-size: 32px;
   }
 
   .calendar-grid {
