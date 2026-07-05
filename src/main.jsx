@@ -8,13 +8,11 @@ import "./style.css";
 
 const LINKS = {
   soop: "https://www.sooplive.com/station/merryou",
-  live: "https://play.sooplive.com/merryou/295216925",
   cafe: "https://cafe.naver.com/bichonb",
   youtube: "https://www.youtube.com/@qltydb",
   fansim: "https://fancimm.com/celebrity/181982",
 };
 
-const IS_LIVE = true;
 const HERO_IMAGE_URL = "/hero.png";
 const DEFAULT_LATEST_VOD_ID = "200178791";
 const DEFAULT_LATEST_VOD_URL = `https://vod.sooplive.com/player/${DEFAULT_LATEST_VOD_ID}`;
@@ -1212,8 +1210,7 @@ function App() {
       <main className="site-frame">
         <section className="hero-section" id="home">
           <div className="hero-art">
-            <div className={`hero-portrait ${IS_LIVE ? "is-live" : ""}`}>
-              {IS_LIVE && <span>LIVE</span>}
+            <div className="hero-portrait">
               <img className="hero-character" src={HERO_IMAGE_URL} alt="비숑 프로필" />
             </div>
           </div>
@@ -1231,11 +1228,6 @@ function App() {
         </section>
 
         <section className="hero-status-strip" aria-label="방송 요약">
-          <article>
-            <span>ON AIR</span>
-            <strong>{IS_LIVE ? "LIVE" : "OFF"}</strong>
-            <p>{IS_LIVE ? "방송 중이에요!" : "방송 중이 아닙니다"}</p>
-          </article>
           <article>
             <span>RECENT NOTICE</span>
             <strong>{noticeStatus === "loading" ? "공지 확인 중" : latestNotice.title}</strong>

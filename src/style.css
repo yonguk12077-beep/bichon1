@@ -265,40 +265,6 @@ a {
   backdrop-filter: blur(10px);
 }
 
-.hero-portrait.is-live {
-  border: 3px solid #ff3048;
-  box-shadow:
-    0 0 0 5px rgba(255, 48, 72, 0.2),
-    0 30px 86px rgba(255, 48, 72, 0.28);
-}
-
-.hero-portrait > span {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  z-index: 2;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: #ff3048;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 1000;
-  letter-spacing: 0;
-  box-shadow: 0 10px 26px rgba(255, 48, 72, 0.34);
-}
-
-.hero-portrait > span::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #fff;
-}
-
 .hero-character {
   width: 100%;
   height: 100%;
@@ -406,7 +372,7 @@ a {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   box-shadow: 0 22px 64px rgba(77, 152, 195, 0.18);
   backdrop-filter: blur(16px);
 }
