@@ -60,6 +60,16 @@ function sanitizeFileName(value) {
   return fileName.slice(0, 180) || "upbo-file";
 }
 
+function sanitizeUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
 function getContentType(contentType, fileName) {
   const normalizedType = String(contentType || "").toLowerCase();
   const fallbackType = EXTENSION_TYPES[getExtension(fileName)] || "";
@@ -106,6 +116,28 @@ export default async function handler(request, response) {
       const body = await readJsonBody(request);
       const fileName = sanitizeFileName(body.fileName || body.title || "upbo-file");
       const title = sanitizeText(body.title || fileName, 180);
+      const href = sanitizeUrl(body.href);
+
+      if (href) {
+        const { data, error } = await client
+          .from("upbo_files")
+          .insert({
+            title,
+            file_name: fileName,
+            file_url: href,
+            storage_path: null,
+            content_type: sanitizeText(body.contentType || "link", 120),
+            size_bytes: 0,
+          })
+          .select("*")
+          .single();
+
+        if (error) throw error;
+
+        sendJson(response, 200, { item: rowToUpboFile(data) });
+        return;
+      }
+
       const { buffer, contentType } = parseDataUrl(body.dataUrl, fileName);
       const storagePath = `${randomUUID()}.${getExtension(fileName)}`;
 
