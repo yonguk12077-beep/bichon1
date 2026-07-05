@@ -23,8 +23,21 @@ create table if not exists fanart (
   created_at  timestamptz default now()
 );
 
+create table if not exists hotclips (
+  id          uuid primary key default gen_random_uuid(),
+  category    text not null,
+  title       text not null default '',
+  href        text not null,
+  thumbnail   text default '',
+  embed_url   text default '',
+  created_at  timestamptz default now()
+);
+
+create index if not exists hotclips_category_created_at_idx on hotclips(category, created_at desc);
+
 alter table schedules enable row level security;
 alter table fanart enable row level security;
+alter table hotclips enable row level security;
 
 drop policy if exists "public read schedules" on schedules;
 drop policy if exists "public insert schedules" on schedules;
@@ -32,6 +45,9 @@ drop policy if exists "public delete schedules" on schedules;
 drop policy if exists "public read fanart" on fanart;
 drop policy if exists "public insert fanart" on fanart;
 drop policy if exists "public delete fanart" on fanart;
+drop policy if exists "public read hotclips" on hotclips;
+drop policy if exists "public insert hotclips" on hotclips;
+drop policy if exists "public delete hotclips" on hotclips;
 
 create policy "public read schedules" on schedules for select using (true);
 create policy "public insert schedules" on schedules for insert with check (true);
@@ -40,6 +56,10 @@ create policy "public delete schedules" on schedules for delete using (true);
 create policy "public read fanart" on fanart for select using (true);
 create policy "public insert fanart" on fanart for insert with check (true);
 create policy "public delete fanart" on fanart for delete using (true);
+
+create policy "public read hotclips" on hotclips for select using (true);
+create policy "public insert hotclips" on hotclips for insert with check (true);
+create policy "public delete hotclips" on hotclips for delete using (true);
 
 insert into storage.buckets (id, name, public)
 values ('fanart', 'fanart', true)

@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { deleteFanart, fetchFanart, uploadFanart } from "./lib/fanart.js";
+import { deleteHotclip, fetchHotclips, saveHotclip } from "./lib/hotclips.js";
 import { deleteScheduleGroup, fetchSchedules, saveScheduleGroup } from "./lib/schedules.js";
 import "./style.css";
 
@@ -27,6 +28,7 @@ const MENU_ITEMS = [
   { id: "schedule", label: "SCHEDULE" },
   { id: "notice", label: "NOTICE" },
   { id: "clips", label: "HIGHLIGHTS" },
+  { id: "hotclips", label: "HOT CLIPS" },
   { id: "gallery", label: "GALLERY" },
   { id: "contact", label: "COMMUNITY" },
 ];
@@ -36,6 +38,7 @@ const MENU_DESCRIPTIONS = {
   about: "비숑 소개",
   notice: "최근 공지",
   clips: "하이라이트",
+  hotclips: "핫클립",
   gallery: "갤러리",
   schedule: "방송 일정",
   contact: "커뮤니티",
@@ -62,10 +65,23 @@ const HISTORY = [
 const DEFAULT_CLIPS = [];
 const FANART_GALLERY_ID = "fanart";
 const FANART_ROUTE = "/fanart";
+const HOTCLIP_PAGE_ID = "hotclips";
+const HOTCLIP_ROUTE = "/hotclips";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
 
 const INTERNAL_ROUTES = {
   [FANART_ROUTE]: FANART_GALLERY_ID,
+  [HOTCLIP_ROUTE]: HOTCLIP_PAGE_ID,
+};
+
+const HOTCLIP_CATEGORIES = [
+  { id: "battlegrounds", label: "배틀그라운드", shortLabel: "배그" },
+  { id: "minecraft", label: "마인크래프트", shortLabel: "마크" },
+];
+
+const DEFAULT_HOTCLIP_DRAFT = {
+  category: HOTCLIP_CATEGORIES[0].id,
+  url: "",
 };
 
 const COMMUNITY_LINKS = [
@@ -496,6 +512,38 @@ function getVideoEmbedUrl(url) {
   return "";
 }
 
+function getYouTubeVideoId(url) {
+  try {
+    const parsed = new URL(url);
+
+    if (parsed.hostname.includes("youtube.com")) {
+      return parsed.searchParams.get("v") || "";
+    }
+
+    if (parsed.hostname.includes("youtu.be")) {
+      return parsed.pathname.replace("/", "");
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function getVideoThumbnailUrl(url) {
+  const youtubeId = getYouTubeVideoId(url);
+
+  return youtubeId ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg` : "";
+}
+
+function getHotclipCategory(categoryId) {
+  return HOTCLIP_CATEGORIES.find((category) => category.id === categoryId) || HOTCLIP_CATEGORIES[0];
+}
+
+function getHotclipsByCategory(hotclips, categoryId) {
+  return hotclips.filter((clip) => clip.category === categoryId);
+}
+
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
@@ -516,6 +564,10 @@ function App() {
   const [latestVods, setLatestVods] = useState(FALLBACK_VODS);
   const [vodStatus, setVodStatus] = useState("loading");
   const [userClips, setUserClips] = useState(() => readUserClips());
+  const [hotclips, setHotclips] = useState([]);
+  const [hotclipDraft, setHotclipDraft] = useState(DEFAULT_HOTCLIP_DRAFT);
+  const [hotclipError, setHotclipError] = useState("");
+  const [hotclipStatus, setHotclipStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
 
   const monthDays = getMonthDays(monthDate);
@@ -526,6 +578,10 @@ function App() {
     .map((item) => ({ ...item, variant: "" }));
   const vodCards = latestVods.length ? latestVods : FALLBACK_VODS;
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
+  const hotclipPreviewCards = HOTCLIP_CATEGORIES.map((category) => ({
+    category,
+    clip: getHotclipsByCategory(hotclips, category.id)[0],
+  }));
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -619,6 +675,18 @@ function App() {
         setFanpageStatus("ready");
       } catch {
         if (alive) setFanpageStatus("offline");
+      }
+
+      try {
+        setHotclipStatus("loading");
+        const nextHotclips = await fetchHotclips();
+
+        if (!alive) return;
+
+        setHotclips(nextHotclips);
+        setHotclipStatus("ready");
+      } catch {
+        if (alive) setHotclipStatus("offline");
       }
     };
 
@@ -774,6 +842,18 @@ function App() {
     openInternalPage(FANART_ROUTE);
   };
 
+  const openHotclipPage = () => {
+    openInternalPage(HOTCLIP_ROUTE);
+  };
+
+  const closeHotclipPage = () => {
+    window.history.pushState({}, "", "/");
+    setActivePage("index");
+    window.setTimeout(() => {
+      document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  };
+
   const closeGalleryPage = () => {
     window.history.pushState({}, "", "/");
     setActivePage("index");
@@ -879,6 +959,165 @@ function App() {
     setClipComposerOpen(false);
   };
 
+  const addHotclipLink = async (event) => {
+    event.preventDefault();
+
+    const url = hotclipDraft.url.trim();
+    if (!url) {
+      setHotclipError("영상 링크를 입력해주세요.");
+      return;
+    }
+
+    try {
+      new URL(url);
+    } catch {
+      setHotclipError("http:// 또는 https://로 시작하는 링크를 넣어주세요.");
+      return;
+    }
+
+    const category = getHotclipCategory(hotclipDraft.category);
+    const vodId = getVodIdFromUrl(url);
+    let nextHotclip = {
+      category: category.id,
+      title: "핫클립",
+      href: url,
+      thumbnail: getVideoThumbnailUrl(url),
+      embedUrl: getVideoEmbedUrl(url),
+    };
+
+    if (vodId) {
+      try {
+        const meta = await requestVodPageMeta(vodId);
+        nextHotclip = {
+          ...nextHotclip,
+          title: meta.title,
+          href: meta.href,
+          thumbnail: meta.thumbnail,
+          embedUrl: meta.embedUrl || "",
+        };
+      } catch {
+        nextHotclip = {
+          ...nextHotclip,
+          title: "SOOP 핫클립",
+        };
+      }
+    }
+
+    try {
+      const savedHotclip = await saveHotclip(nextHotclip);
+
+      setHotclips((prev) => [
+        savedHotclip,
+        ...prev,
+      ]);
+      setHotclipDraft((prev) => ({ ...prev, url: "" }));
+      setHotclipError("");
+      setHotclipStatus("ready");
+    } catch {
+      setHotclipError("핫클립 추가에 실패했습니다. 공용 저장소 설정을 확인해주세요.");
+    }
+  };
+
+  const deleteHotclipItem = async (hotclipId) => {
+    if (!window.confirm("이 핫클립을 삭제할까요?")) return;
+
+    try {
+      const nextHotclips = await deleteHotclip(hotclipId);
+
+      setHotclips(nextHotclips);
+      setHotclipStatus("ready");
+    } catch {
+      window.alert("핫클립 삭제에 실패했습니다.");
+    }
+  };
+
+  if (activePage === HOTCLIP_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        <main className="site-frame fanart-page-frame">
+          <section className="page-section hotclips-section hotclips-route-section">
+            <div className="gallery-page-shell">
+              <button className="gallery-back-button" type="button" onClick={closeHotclipPage}>
+                ← 메인으로 돌아가기
+              </button>
+
+              <div className="gallery-page-header">
+                <SectionTitle number="05" title="핫클립" eyebrow="hot clips" />
+              </div>
+
+              <form className="hotclip-link-form" onSubmit={addHotclipLink}>
+                <select
+                  value={hotclipDraft.category}
+                  onChange={(event) => {
+                    setHotclipDraft((prev) => ({ ...prev, category: event.target.value }));
+                    setHotclipError("");
+                  }}
+                  aria-label="핫클립 분류"
+                >
+                  {HOTCLIP_CATEGORIES.map((category) => (
+                    <option value={category.id} key={category.id}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={hotclipDraft.url}
+                  onChange={(event) => {
+                    setHotclipDraft((prev) => ({ ...prev, url: event.target.value }));
+                    setHotclipError("");
+                  }}
+                  placeholder="영상 링크 붙여넣기"
+                />
+                <button type="submit">추가하기</button>
+              </form>
+
+              {hotclipError && <strong className="form-error">{hotclipError}</strong>}
+
+              <div className="hotclip-category-stack">
+                {HOTCLIP_CATEGORIES.map((category) => {
+                  const categoryHotclips = getHotclipsByCategory(hotclips, category.id);
+
+                  return (
+                    <section className="hotclip-category-block" key={category.id}>
+                      <div className="hotclip-category-heading">
+                        <strong>{category.label}</strong>
+                        <span>{categoryHotclips.length} clips</span>
+                      </div>
+
+                      {categoryHotclips.length > 0 ? (
+                        <div className="clip-grid hotclip-page-grid">
+                          {categoryHotclips.map((clip) => (
+                            <article className="clip-card hotclip-card" key={clip.id}>
+                              <button
+                                className="hotclip-delete-button"
+                                type="button"
+                                onClick={() => deleteHotclipItem(clip.id)}
+                                aria-label={`${clip.title} 삭제`}
+                              >
+                                ×
+                              </button>
+                              <a href={clip.href} target="_blank" rel="noreferrer">
+                                <span>{category.shortLabel}</span>
+                                <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                                <strong>{clip.title}</strong>
+                              </a>
+                            </article>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="hotclip-empty-state">아직 추가된 핫클립이 없어요.</div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   if (activePage === FANART_GALLERY_ID) {
     return (
       <div className="app-shell">
@@ -890,7 +1129,7 @@ function App() {
               </button>
 
               <div className="gallery-page-header">
-                <SectionTitle number="05" title="팬아트 갤러리" eyebrow="fanart gallery" />
+                <SectionTitle number="06" title="팬아트 갤러리" eyebrow="fanart gallery" />
                 <div className="gallery-page-actions">
                   <label className="fanart-add-button">
                     추가하기
@@ -1177,9 +1416,35 @@ function App() {
           </div>
         </section>
 
+        <section className="page-section hotclips-section" id="hotclips">
+          <div className="section-row gallery-heading">
+            <SectionTitle number="05" title="핫클립" eyebrow="HOT CLIPS" />
+            <button className="gallery-manage-button" type="button" onClick={openHotclipPage}>
+              이동하기
+            </button>
+          </div>
+
+          {hotclipStatus === "offline" && (
+            <small className="fanpage-status fanpage-status-offline">
+              핫클립 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
+            </small>
+          )}
+
+          <div className="hotclip-preview-grid">
+            {hotclipPreviewCards.map(({ category, clip }) => (
+              <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={category.id}>
+                <span>{category.shortLabel}</span>
+                <img src={clip?.thumbnail || HERO_IMAGE_URL} alt="" />
+                <strong>{clip?.title || `${category.label} 핫클립`}</strong>
+                <p>{clip ? "최근에 추가된 영상" : "핫클립을 추가해보세요"}</p>
+              </button>
+            ))}
+          </div>
+        </section>
+
         <section className="page-section gallery-section" id="gallery">
           <div className="section-row gallery-heading">
-            <SectionTitle number="05" title="비숑팬아트" eyebrow="GALLERY" />
+            <SectionTitle number="06" title="비숑팬아트" eyebrow="GALLERY" />
             <button className="gallery-manage-button" type="button" onClick={openFanartPage}>
               이동하기
             </button>
@@ -1200,7 +1465,7 @@ function App() {
         </section>
 
         <section className="page-section community-section" id="contact">
-          <SectionTitle number="06" title="함께해요, 솜뭉치!" eyebrow="COMMUNITY" />
+          <SectionTitle number="07" title="함께해요, 솜뭉치!" eyebrow="COMMUNITY" />
           <div className="community-grid">
             {COMMUNITY_LINKS.map((link) => (
               <a href={link.href} target="_blank" rel="noreferrer" key={link.title}>
