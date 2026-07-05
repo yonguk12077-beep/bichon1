@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { deleteFanart, fetchFanart, uploadFanart } from "./lib/fanart.js";
 import { deleteHotclip, fetchHotclips, saveHotclip } from "./lib/hotclips.js";
 import { deleteScheduleGroup, fetchSchedules, saveScheduleGroup } from "./lib/schedules.js";
+import { deleteUpboFile, fetchUpboFiles, uploadUpboFile } from "./lib/upbo.js";
 import "./style.css";
 
 const LINKS = {
@@ -19,6 +20,8 @@ const DEFAULT_LATEST_VOD_URL = `https://vod.sooplive.com/player/${DEFAULT_LATEST
 const DEFAULT_LATEST_VOD_THUMBNAIL =
   "https://videoimg.sooplive.com/php/SnapshotLoad.php?rowKey=20260630_00FBB175_295216925_2_r";
 const VOD_DISPLAY_LIMIT = 5;
+const UPBO_PAGE_ID = "upbo";
+const UPBO_ROUTE = "/upbo";
 
 const MENU_ITEMS = [
   { id: "home", label: "HOME" },
@@ -29,6 +32,7 @@ const MENU_ITEMS = [
   { id: "hotclips", label: "HOT CLIPS" },
   { id: "gallery", label: "GALLERY" },
   { id: "contact", label: "COMMUNITY" },
+  { id: UPBO_PAGE_ID, label: "UPBO", route: UPBO_ROUTE },
 ];
 
 const MENU_DESCRIPTIONS = {
@@ -40,6 +44,7 @@ const MENU_DESCRIPTIONS = {
   gallery: "갤러리",
   schedule: "방송 일정",
   contact: "커뮤니티",
+  upbo: "업보",
 };
 
 const PROFILE_ITEMS = [
@@ -70,6 +75,7 @@ const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
 const INTERNAL_ROUTES = {
   [FANART_ROUTE]: FANART_GALLERY_ID,
   [HOTCLIP_ROUTE]: HOTCLIP_PAGE_ID,
+  [UPBO_ROUTE]: UPBO_PAGE_ID,
 };
 
 const HOTCLIP_CATEGORIES = [
@@ -542,6 +548,16 @@ function getHotclipsByCategory(hotclips, categoryId) {
   return hotclips.filter((clip) => clip.category === categoryId);
 }
 
+function formatFileSize(sizeBytes) {
+  const size = Number(sizeBytes || 0);
+
+  if (!size) return "";
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
@@ -566,6 +582,8 @@ function App() {
   const [hotclipDraft, setHotclipDraft] = useState(DEFAULT_HOTCLIP_DRAFT);
   const [hotclipError, setHotclipError] = useState("");
   const [hotclipStatus, setHotclipStatus] = useState("loading");
+  const [upboFiles, setUpboFiles] = useState([]);
+  const [upboStatus, setUpboStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
 
   const monthDays = getMonthDays(monthDate);
@@ -685,6 +703,18 @@ function App() {
         setHotclipStatus("ready");
       } catch {
         if (alive) setHotclipStatus("offline");
+      }
+
+      try {
+        setUpboStatus("loading");
+        const nextUpboFiles = await fetchUpboFiles();
+
+        if (!alive) return;
+
+        setUpboFiles(nextUpboFiles);
+        setUpboStatus("ready");
+      } catch {
+        if (alive) setUpboStatus("offline");
       }
     };
 
@@ -844,6 +874,12 @@ function App() {
     openInternalPage(HOTCLIP_ROUTE);
   };
 
+  const closeUpboPage = () => {
+    window.history.pushState({}, "", "/");
+    setActivePage("index");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const closeHotclipPage = () => {
     window.history.pushState({}, "", "/");
     setActivePage("index");
@@ -886,6 +922,47 @@ function App() {
     }
 
     input.value = "";
+  };
+
+  const addUpboFiles = async (event) => {
+    const input = event.currentTarget;
+    const files = Array.from(event.target.files || []);
+
+    if (!files.length) return;
+
+    try {
+      const uploadedFiles = (await Promise.all(
+        files.map((file) => uploadUpboFile(file))
+      )).filter(Boolean);
+
+      if (!uploadedFiles.length) return;
+
+      setUpboFiles((prev) => [
+        ...uploadedFiles,
+        ...prev,
+      ]);
+      setUpboStatus("ready");
+    } catch {
+      window.alert("업보 파일 업로드에 실패했습니다. 공용 저장소 설정을 확인해주세요.");
+    }
+
+    input.value = "";
+  };
+
+  const deleteUpboItem = async (fileId) => {
+    const targetItem = upboFiles.find((item) => item.id === fileId);
+
+    if (!targetItem) return;
+    if (!window.confirm("이 업보 파일을 삭제할까요?")) return;
+
+    try {
+      const nextUpboFiles = await deleteUpboFile(targetItem);
+
+      setUpboFiles(nextUpboFiles);
+      setUpboStatus("ready");
+    } catch {
+      window.alert("업보 파일 삭제에 실패했습니다.");
+    }
   };
 
   const deleteGalleryImage = async (categoryId, imageId) => {
@@ -1028,6 +1105,61 @@ function App() {
       window.alert("핫클립 삭제에 실패했습니다.");
     }
   };
+
+  if (activePage === UPBO_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        <main className="site-frame fanart-page-frame">
+          <section className="page-section upbo-route-section">
+            <div className="gallery-page-shell">
+              <button className="gallery-back-button" type="button" onClick={closeUpboPage}>
+                ← 메인으로 돌아가기
+              </button>
+
+              <div className="gallery-page-header">
+                <SectionTitle number="UP" title="업보" eyebrow="UPBO FILES" />
+                <div className="gallery-page-actions">
+                  <label className="fanart-add-button upbo-add-button">
+                    파일 추가
+                    <input type="file" multiple onChange={addUpboFiles} />
+                  </label>
+                </div>
+              </div>
+
+              {upboStatus === "offline" && (
+                <small className="fanpage-status fanpage-status-offline">
+                  업보 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
+                </small>
+              )}
+
+              {upboFiles.length > 0 && (
+                <div className="upbo-file-list">
+                  {upboFiles.map((file) => (
+                    <article className="upbo-file-item" key={file.id}>
+                      <a href={file.href} target="_blank" rel="noreferrer">
+                        <strong>{file.fileName || file.title}</strong>
+                        <small>
+                          {[formatFileSize(file.sizeBytes), file.contentType].filter(Boolean).join(" · ")}
+                        </small>
+                      </a>
+                      <button
+                        className="upbo-delete-button"
+                        type="button"
+                        onClick={() => deleteUpboItem(file.id)}
+                        aria-label={`${file.fileName || file.title} 삭제`}
+                      >
+                        ×
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   if (activePage === HOTCLIP_PAGE_ID) {
     return (
@@ -1192,7 +1324,7 @@ function App() {
         </div>
         <nav>
           {MENU_ITEMS.map((item) => (
-            <button key={item.id} onClick={() => jumpToSection(item.id)}>
+            <button key={item.id} onClick={() => (item.route ? openInternalPage(item.route) : jumpToSection(item.id))}>
               <span>{item.label}</span>
               <small>{MENU_DESCRIPTIONS[item.id]}</small>
             </button>
