@@ -581,7 +581,7 @@ function App() {
   const hotclipPreviewCards = HOTCLIP_CATEGORIES.map((category) => ({
     category,
     clip: getHotclipsByCategory(hotclips, category.id)[0],
-  }));
+  })).filter(({ clip }) => Boolean(clip));
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -1077,6 +1077,8 @@ function App() {
                 {HOTCLIP_CATEGORIES.map((category) => {
                   const categoryHotclips = getHotclipsByCategory(hotclips, category.id);
 
+                  if (!categoryHotclips.length) return null;
+
                   return (
                     <section className="hotclip-category-block" key={category.id}>
                       <div className="hotclip-category-heading">
@@ -1084,29 +1086,25 @@ function App() {
                         <span>{categoryHotclips.length} clips</span>
                       </div>
 
-                      {categoryHotclips.length > 0 ? (
-                        <div className="clip-grid hotclip-page-grid">
-                          {categoryHotclips.map((clip) => (
-                            <article className="clip-card hotclip-card" key={clip.id}>
-                              <button
-                                className="hotclip-delete-button"
-                                type="button"
-                                onClick={() => deleteHotclipItem(clip.id)}
-                                aria-label={`${clip.title} 삭제`}
-                              >
-                                ×
-                              </button>
-                              <a href={clip.href} target="_blank" rel="noreferrer">
-                                <span>{category.shortLabel}</span>
-                                <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
-                                <strong>{clip.title}</strong>
-                              </a>
-                            </article>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="hotclip-empty-state">아직 추가된 핫클립이 없어요.</div>
-                      )}
+                      <div className="clip-grid hotclip-page-grid">
+                        {categoryHotclips.map((clip) => (
+                          <article className="clip-card hotclip-card" key={clip.id}>
+                            <button
+                              className="hotclip-delete-button"
+                              type="button"
+                              onClick={() => deleteHotclipItem(clip.id)}
+                              aria-label={`${clip.title} 삭제`}
+                            >
+                              ×
+                            </button>
+                            <a href={clip.href} target="_blank" rel="noreferrer">
+                              <span>{category.shortLabel}</span>
+                              <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                              <strong>{clip.title}</strong>
+                            </a>
+                          </article>
+                        ))}
+                      </div>
                     </section>
                   );
                 })}
@@ -1430,16 +1428,18 @@ function App() {
             </small>
           )}
 
-          <div className="hotclip-preview-grid">
-            {hotclipPreviewCards.map(({ category, clip }) => (
-              <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={category.id}>
-                <span>{category.shortLabel}</span>
-                <img src={clip?.thumbnail || HERO_IMAGE_URL} alt="" />
-                <strong>{clip?.title || `${category.label} 핫클립`}</strong>
-                <p>{clip ? "최근에 추가된 영상" : "핫클립을 추가해보세요"}</p>
-              </button>
-            ))}
-          </div>
+          {hotclipPreviewCards.length > 0 && (
+            <div className="hotclip-preview-grid">
+              {hotclipPreviewCards.map(({ category, clip }) => (
+                <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={category.id}>
+                  <span>{category.shortLabel}</span>
+                  <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                  <strong>{clip.title}</strong>
+                  <p>최근에 추가된 영상</p>
+                </button>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="page-section gallery-section" id="gallery">
