@@ -1435,7 +1435,6 @@ function App() {
                   <span>{category.shortLabel}</span>
                   <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
                   <strong>{clip.title}</strong>
-                  <p>최근에 추가된 영상</p>
                 </button>
               ))}
             </div>
