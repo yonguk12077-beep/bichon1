@@ -768,16 +768,29 @@ a {
 
 .hotclip-preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 460px));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 300px));
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .hotclip-preview-card {
   width: 100%;
-  min-height: 190px;
+  min-height: 126px;
+  padding: 13px;
   text-align: left;
   cursor: pointer;
+}
+
+.hotclip-preview-card span {
+  top: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  font-size: 11px;
+}
+
+.hotclip-preview-card strong {
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .hotclip-link-form {

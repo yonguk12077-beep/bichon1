@@ -578,10 +578,11 @@ function App() {
     .map((item) => ({ ...item, variant: "" }));
   const vodCards = latestVods.length ? latestVods : FALLBACK_VODS;
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
-  const hotclipPreviewCards = HOTCLIP_CATEGORIES.map((category) => ({
-    category,
-    clip: getHotclipsByCategory(hotclips, category.id)[0],
-  })).filter(({ clip }) => Boolean(clip));
+  const hotclipPreviewCards = HOTCLIP_CATEGORIES.flatMap((category) =>
+    getHotclipsByCategory(hotclips, category.id)
+      .slice(0, 2)
+      .map((clip) => ({ category, clip }))
+  );
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -1431,7 +1432,7 @@ function App() {
           {hotclipPreviewCards.length > 0 && (
             <div className="hotclip-preview-grid">
               {hotclipPreviewCards.map(({ category, clip }) => (
-                <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={category.id}>
+                <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={clip.id}>
                   <span>{category.shortLabel}</span>
                   <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
                   <strong>{clip.title}</strong>
