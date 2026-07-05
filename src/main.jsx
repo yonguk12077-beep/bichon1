@@ -576,11 +576,10 @@ function App() {
     .map((item) => ({ ...item, variant: "" }));
   const vodCards = latestVods.length ? latestVods : FALLBACK_VODS;
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
-  const hotclipPreviewCards = HOTCLIP_CATEGORIES.flatMap((category) =>
-    getHotclipsByCategory(hotclips, category.id)
-      .slice(0, 2)
-      .map((clip) => ({ category, clip }))
-  );
+  const hotclipPreviewGroups = HOTCLIP_CATEGORIES.map((category) => ({
+    category,
+    clips: getHotclipsByCategory(hotclips, category.id).slice(0, 2),
+  })).filter((group) => group.clips.length);
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -1421,14 +1420,27 @@ function App() {
             </small>
           )}
 
-          {hotclipPreviewCards.length > 0 && (
-            <div className="hotclip-preview-grid">
-              {hotclipPreviewCards.map(({ category, clip }) => (
-                <button className="clip-card hotclip-preview-card" type="button" onClick={openHotclipPage} key={clip.id}>
-                  <span>{category.shortLabel}</span>
-                  <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
-                  <strong>{clip.title}</strong>
-                </button>
+          {hotclipPreviewGroups.length > 0 && (
+            <div
+              className={`hotclip-preview-grid ${
+                hotclipPreviewGroups.length > 1 ? "has-divider" : "is-single"
+              }`}
+            >
+              {hotclipPreviewGroups.map(({ category, clips }) => (
+                <div className="hotclip-preview-column" key={category.id}>
+                  {clips.map((clip) => (
+                    <button
+                      className="clip-card hotclip-preview-card"
+                      type="button"
+                      onClick={openHotclipPage}
+                      key={clip.id}
+                    >
+                      <span>{category.shortLabel}</span>
+                      <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                      <strong>{clip.title}</strong>
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           )}

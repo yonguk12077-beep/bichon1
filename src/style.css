@@ -733,29 +733,56 @@ a {
 }
 
 .hotclip-preview-grid {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 300px));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 34px;
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  align-items: start;
+}
+
+.hotclip-preview-grid.is-single {
+  grid-template-columns: minmax(0, 520px);
   justify-content: center;
-  gap: 12px;
+}
+
+.hotclip-preview-grid.has-divider::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #cfe8f5 18%, #cfe8f5 82%, transparent);
+}
+
+.hotclip-preview-column {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
 }
 
 .hotclip-preview-card {
-  width: 100%;
-  min-height: 126px;
-  padding: 13px;
+  width: min(100%, 500px);
+  aspect-ratio: 1.46;
+  min-height: 0;
+  margin: 0 auto;
+  padding: 24px 26px;
   text-align: left;
   cursor: pointer;
 }
 
 .hotclip-preview-card span {
-  top: 10px;
-  left: 10px;
-  padding: 5px 10px;
-  font-size: 11px;
+  top: 20px;
+  left: 22px;
+  padding: 9px 18px;
+  font-size: 16px;
 }
 
 .hotclip-preview-card strong {
-  font-size: 13px;
+  font-size: 24px;
   line-height: 1.35;
 }
 
@@ -1515,6 +1542,24 @@ button.day {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .hotclip-preview-grid {
+    gap: 26px;
+  }
+
+  .hotclip-preview-card {
+    padding: 20px 22px;
+  }
+
+  .hotclip-preview-card span {
+    top: 16px;
+    left: 18px;
+    font-size: 14px;
+  }
+
+  .hotclip-preview-card strong {
+    font-size: 20px;
+  }
+
   .gallery-mosaic {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -1550,6 +1595,32 @@ button.day {
   .profile-panel,
   .community-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hotclip-preview-grid,
+  .hotclip-preview-grid.is-single {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hotclip-preview-grid.has-divider::before {
+    display: none;
+  }
+
+  .hotclip-preview-card {
+    width: 100%;
+    padding: 18px;
+  }
+
+  .hotclip-preview-card span {
+    top: 14px;
+    left: 14px;
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  .hotclip-preview-card strong {
+    font-size: 18px;
   }
 
   .hero-status-strip article {
