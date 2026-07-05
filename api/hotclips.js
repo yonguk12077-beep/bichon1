@@ -1,6 +1,6 @@
 import { fail, getSupabaseClient, readJsonBody, sanitizeText, sendJson } from "./_supabase.js";
 
-const HOTCLIP_CATEGORIES = new Set(["battlegrounds", "minecraft"]);
+const HOTCLIP_CATEGORIES = new Set(["battlegrounds", "minecraft", "jandi", "fulltrack"]);
 const GENERIC_HOTCLIP_TITLES = new Set(["Hot Clip", "핫클립", "SOOP 핫클립"]);
 
 function decodeHtml(value) {

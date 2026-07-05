@@ -81,6 +81,8 @@ const INTERNAL_ROUTES = {
 const HOTCLIP_CATEGORIES = [
   { id: "battlegrounds", label: "배틀그라운드", shortLabel: "배그" },
   { id: "minecraft", label: "마인크래프트", shortLabel: "마크" },
+  { id: "jandi", label: "잔디", shortLabel: "잔디" },
+  { id: "fulltrack", label: "풀트", shortLabel: "풀트" },
 ];
 
 const DEFAULT_HOTCLIP_DRAFT = {
@@ -596,7 +598,7 @@ function App() {
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
   const hotclipPreviewGroups = HOTCLIP_CATEGORIES.map((category) => ({
     category,
-    clips: getHotclipsByCategory(hotclips, category.id).slice(0, 2),
+    clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
   })).filter((group) => group.clips.length);
 
   const loadLatestVod = useCallback(async () => {
