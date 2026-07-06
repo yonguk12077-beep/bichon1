@@ -32,7 +32,7 @@ const MENU_ITEMS = [
   { id: "hotclips", label: "HOT CLIPS" },
   { id: "gallery", label: "GALLERY" },
   { id: "contact", label: "COMMUNITY" },
-  { id: UPBO_PAGE_ID, label: "UPBO", route: UPBO_ROUTE },
+  { id: UPBO_PAGE_ID, label: "시트지", route: UPBO_ROUTE },
 ];
 
 const MENU_DESCRIPTIONS = {
@@ -44,7 +44,7 @@ const MENU_DESCRIPTIONS = {
   gallery: "갤러리",
   schedule: "방송 일정",
   contact: "커뮤니티",
-  upbo: "업보",
+  upbo: "시트지",
 };
 
 const PROFILE_ITEMS = [
@@ -550,16 +550,6 @@ function getHotclipsByCategory(hotclips, categoryId) {
   return hotclips.filter((clip) => clip.category === categoryId);
 }
 
-function formatFileSize(sizeBytes) {
-  const size = Number(sizeBytes || 0);
-
-  if (!size) return "";
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
-
-  return `${(size / 1024 / 1024).toFixed(1)} MB`;
-}
-
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
@@ -945,7 +935,7 @@ function App() {
       ]);
       setUpboStatus("ready");
     } catch (error) {
-      window.alert(`업보 파일 업로드에 실패했습니다. ${error?.message || "공용 저장소 설정을 확인해주세요."}`);
+      window.alert(`시트지 업로드에 실패했습니다. ${error?.message || "공용 저장소 설정을 확인해주세요."}`);
     }
 
     input.value = "";
@@ -955,7 +945,7 @@ function App() {
     const targetItem = upboFiles.find((item) => item.id === fileId);
 
     if (!targetItem) return;
-    if (!window.confirm("이 업보 파일을 삭제할까요?")) return;
+    if (!window.confirm("이 시트지를 삭제할까요?")) return;
 
     try {
       const nextUpboFiles = await deleteUpboFile(targetItem);
@@ -963,7 +953,7 @@ function App() {
       setUpboFiles(nextUpboFiles);
       setUpboStatus("ready");
     } catch {
-      window.alert("업보 파일 삭제에 실패했습니다.");
+      window.alert("시트지 삭제에 실패했습니다.");
     }
   };
 
@@ -1119,7 +1109,7 @@ function App() {
               </button>
 
               <div className="gallery-page-header">
-                <SectionTitle number="UP" title="업보" eyebrow="UPBO FILES" />
+                <SectionTitle number="ST" title="시트지" eyebrow="SHEET" />
                 <div className="gallery-page-actions">
                   <label className="fanart-add-button upbo-add-button">
                     파일 추가
@@ -1130,7 +1120,7 @@ function App() {
 
               {upboStatus === "offline" && (
                 <small className="fanpage-status fanpage-status-offline">
-                  업보 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
+                  시트지 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
                 </small>
               )}
 
@@ -1140,9 +1130,6 @@ function App() {
                     <article className="upbo-file-item" key={file.id}>
                       <a href={file.href} target="_blank" rel="noreferrer">
                         <strong>{file.fileName || file.title}</strong>
-                        <small>
-                          {[formatFileSize(file.sizeBytes), file.contentType].filter(Boolean).join(" · ")}
-                        </small>
                       </a>
                       <button
                         className="upbo-delete-button"

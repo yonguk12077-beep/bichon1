@@ -1115,15 +1115,6 @@ a {
   white-space: nowrap;
 }
 
-.upbo-file-item small {
-  overflow: hidden;
-  color: #74677f;
-  font-size: 11px;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .upbo-delete-button {
   width: 30px;
   height: 30px;
