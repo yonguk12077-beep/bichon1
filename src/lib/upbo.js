@@ -49,6 +49,34 @@ function getExtension(fileName) {
   return String(fileName || "").match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase() || "";
 }
 
+function isGoogleShortcutFile(file) {
+  return Boolean(GOOGLE_SHORTCUT_TYPES[getExtension(file.name)]);
+}
+
+function normalizeGoogleUrl(value) {
+  const href = String(value || "").trim();
+
+  if (!/^https:\/\/(?:docs|drive)\.google\.com\//.test(href)) {
+    return "";
+  }
+
+  return href;
+}
+
+async function saveUpboLink({ title, fileName, href, contentType }) {
+  const data = await requestJson({
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      fileName,
+      href,
+      contentType,
+    }),
+  });
+
+  return data.item;
+}
+
 async function readGoogleShortcut(file) {
   const extension = getExtension(file.name);
   const contentType = GOOGLE_SHORTCUT_TYPES[extension];
@@ -66,10 +94,24 @@ async function readGoogleShortcut(file) {
 
   const normalizedText = rawText.replace(/\\\//g, "/");
   const fallbackUrl = normalizedText.match(/https?:\/\/(?:docs|drive)\.google\.com\/[^"'\s}]+/)?.[0] || "";
-  const href = String(shortcut.url || shortcut.targetUrl || shortcut.target_url || fallbackUrl).trim();
+  const href = normalizeGoogleUrl(shortcut.url || shortcut.targetUrl || shortcut.target_url || fallbackUrl);
 
-  if (!/^https:\/\/(?:docs|drive)\.google\.com\//.test(href)) {
+  if (!href) {
     throw new Error("구글 시트 바로가기 파일에서 링크를 읽을 수 없습니다.");
+  }
+
+  return { href, contentType };
+}
+
+async function requestGoogleShortcutUrl(file) {
+  const contentType = GOOGLE_SHORTCUT_TYPES[getExtension(file.name)];
+  const pastedUrl = window.prompt(
+    "이 구글 드라이브 바로가기 파일은 브라우저에서 직접 읽을 수 없어요.\n구글 시트를 열고 공유 링크를 붙여넣어 주세요."
+  );
+  const href = normalizeGoogleUrl(pastedUrl);
+
+  if (!href) {
+    throw new Error("구글 시트 공유 링크가 필요합니다.");
   }
 
   return { href, contentType };
@@ -85,20 +127,23 @@ export async function uploadUpboFile(file) {
     throw new Error("Upbo file is too large.");
   }
 
-  const googleShortcut = await readGoogleShortcut(file);
+  let googleShortcut = null;
+
+  if (isGoogleShortcutFile(file)) {
+    try {
+      googleShortcut = await readGoogleShortcut(file);
+    } catch {
+      googleShortcut = await requestGoogleShortcutUrl(file);
+    }
+  }
 
   if (googleShortcut) {
-    const data = await requestJson({
-      method: "POST",
-      body: JSON.stringify({
-        title: file.name,
-        fileName: file.name,
-        href: googleShortcut.href,
-        contentType: googleShortcut.contentType,
-      }),
+    return saveUpboLink({
+      title: file.name,
+      fileName: file.name,
+      href: googleShortcut.href,
+      contentType: googleShortcut.contentType,
     });
-
-    return data.item;
   }
 
   const data = await requestJson({
