@@ -3,6 +3,7 @@ const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const GOOGLE_SHORTCUT_TYPES = {
   gdoc: "application/vnd.google-apps.document",
   gsheet: "application/vnd.google-apps.spreadsheet",
+  gsheeet: "application/vnd.google-apps.spreadsheet",
   gslides: "application/vnd.google-apps.presentation",
 };
 
@@ -54,11 +55,21 @@ async function readGoogleShortcut(file) {
 
   if (!contentType) return null;
 
-  const shortcut = JSON.parse(await readFileAsText(file));
-  const href = String(shortcut.url || "").trim();
+  const rawText = String(await readFileAsText(file) || "").replace(/^\uFEFF/, "").trim();
+  let shortcut;
 
-  if (!href.startsWith("https://docs.google.com/")) {
-    throw new Error("Invalid Google shortcut.");
+  try {
+    shortcut = JSON.parse(rawText);
+  } catch {
+    shortcut = {};
+  }
+
+  const normalizedText = rawText.replace(/\\\//g, "/");
+  const fallbackUrl = normalizedText.match(/https?:\/\/(?:docs|drive)\.google\.com\/[^"'\s}]+/)?.[0] || "";
+  const href = String(shortcut.url || shortcut.targetUrl || shortcut.target_url || fallbackUrl).trim();
+
+  if (!/^https:\/\/(?:docs|drive)\.google\.com\//.test(href)) {
+    throw new Error("구글 시트 바로가기 파일에서 링크를 읽을 수 없습니다.");
   }
 
   return { href, contentType };

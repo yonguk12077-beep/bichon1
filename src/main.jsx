@@ -944,8 +944,8 @@ function App() {
         ...prev,
       ]);
       setUpboStatus("ready");
-    } catch {
-      window.alert("업보 파일 업로드에 실패했습니다. 공용 저장소 설정을 확인해주세요.");
+    } catch (error) {
+      window.alert(`업보 파일 업로드에 실패했습니다. ${error?.message || "공용 저장소 설정을 확인해주세요."}`);
     }
 
     input.value = "";
