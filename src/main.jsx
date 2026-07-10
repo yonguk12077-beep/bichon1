@@ -1,5 +1,5 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { deleteFanart, fetchFanart, uploadFanart } from "./lib/fanart.js";
 import { deleteHotclip, fetchHotclips, saveHotclip } from "./lib/hotclips.js";
@@ -15,6 +15,9 @@ const LINKS = {
 };
 
 const HERO_IMAGE_URL = "/hero.png";
+const LOADING_MASCOT_URL = "/loading-mascot.png";
+const PAGE_TRANSITION_DELAY_MS = 90;
+const PAGE_TRANSITION_DURATION_MS = 620;
 const DEFAULT_LATEST_VOD_ID = "200178791";
 const DEFAULT_LATEST_VOD_URL = `https://vod.sooplive.com/player/${DEFAULT_LATEST_VOD_ID}`;
 const DEFAULT_LATEST_VOD_THUMBNAIL =
@@ -577,6 +580,8 @@ function App() {
   const [upboFiles, setUpboFiles] = useState([]);
   const [upboStatus, setUpboStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
+  const [pageLoading, setPageLoading] = useState(false);
+  const pageLoadingTimerRef = useRef(null);
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -721,21 +726,45 @@ function App() {
     saveUserClips(userClips);
   }, [userClips]);
 
+  useEffect(() => () => {
+    if (pageLoadingTimerRef.current) {
+      window.clearTimeout(pageLoadingTimerRef.current);
+    }
+  }, []);
+
+  const startPageTransition = (callback) => {
+    setPageLoading(true);
+
+    if (pageLoadingTimerRef.current) {
+      window.clearTimeout(pageLoadingTimerRef.current);
+    }
+
+    window.setTimeout(callback, PAGE_TRANSITION_DELAY_MS);
+    pageLoadingTimerRef.current = window.setTimeout(() => {
+      setPageLoading(false);
+      pageLoadingTimerRef.current = null;
+    }, PAGE_TRANSITION_DURATION_MS);
+  };
+
   const openInternalPage = (route) => {
-    window.history.pushState({}, "", route);
-    setActivePage(getPageFromPath(route));
-    setMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    startPageTransition(() => {
+      window.history.pushState({}, "", route);
+      setActivePage(getPageFromPath(route));
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   };
 
   const jumpToSection = (sectionId) => {
     if (activePage !== "index") {
-      window.history.pushState({}, "", "/");
-      setActivePage("index");
-      window.setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
-      setMenuOpen(false);
+      startPageTransition(() => {
+        window.history.pushState({}, "", "/");
+        setActivePage("index");
+        window.setTimeout(() => {
+          document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 0);
+        setMenuOpen(false);
+      });
       return;
     }
 
@@ -902,25 +931,31 @@ function App() {
   };
 
   const closeUpboPage = () => {
-    window.history.pushState({}, "", "/");
-    setActivePage("index");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    startPageTransition(() => {
+      window.history.pushState({}, "", "/");
+      setActivePage("index");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   };
 
   const closeHotclipPage = () => {
-    window.history.pushState({}, "", "/");
-    setActivePage("index");
-    window.setTimeout(() => {
-      document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
+    startPageTransition(() => {
+      window.history.pushState({}, "", "/");
+      setActivePage("index");
+      window.setTimeout(() => {
+        document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    });
   };
 
   const closeGalleryPage = () => {
-    window.history.pushState({}, "", "/");
-    setActivePage("index");
-    window.setTimeout(() => {
-      document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
+    startPageTransition(() => {
+      window.history.pushState({}, "", "/");
+      setActivePage("index");
+      window.setTimeout(() => {
+        document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 0);
+    });
   };
 
   const addGalleryFiles = async (event, categoryId) => {
@@ -1133,6 +1168,16 @@ function App() {
     }
   };
 
+  const pageLoadingOverlay = pageLoading && (
+    <div className="page-loading-overlay" role="status" aria-live="polite" aria-label="페이지를 불러오는 중">
+      <div className="loading-mascot-track" aria-hidden="true">
+        <img src={LOADING_MASCOT_URL} alt="" />
+      </div>
+      <div className="loading-spinner" aria-hidden="true" />
+      <strong>LOADING</strong>
+    </div>
+  );
+
   if (activePage === UPBO_PAGE_ID) {
     return (
       <div className="app-shell">
@@ -1181,6 +1226,7 @@ function App() {
             </div>
           </section>
         </main>
+        {pageLoadingOverlay}
       </div>
     );
   }
@@ -1266,6 +1312,7 @@ function App() {
             </div>
           </section>
         </main>
+        {pageLoadingOverlay}
       </div>
     );
   }
@@ -1315,6 +1362,7 @@ function App() {
             </div>
           </section>
         </main>
+        {pageLoadingOverlay}
       </div>
     );
   }
@@ -1760,6 +1808,8 @@ function App() {
           </form>
         </div>
       )}
+
+      {pageLoadingOverlay}
     </div>
   );
 }
