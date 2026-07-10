@@ -1851,18 +1851,31 @@ function App() {
             </button>
           </div>
 
+          <div className="room-depth" aria-hidden="true">
+            <span className="room-ceiling-light light-one"></span>
+            <span className="room-ceiling-light light-two"></span>
+            <span className="room-floor-rug"></span>
+          </div>
+
           <div className="room-wall">
             <button className="room-frame" type="button" onClick={openFanartPage} aria-label="팬아트 갤러리 열기">
               <img src={FRAME_ART_URL} alt="" />
+              <span>팬아트</span>
             </button>
 
             <div className="room-window" aria-hidden="true">
-              <span></span>
-              <span></span>
+              <span className="window-cross vertical"></span>
+              <span className="window-cross horizontal"></span>
+              <span className="window-curtain curtain-left"></span>
+              <span className="window-curtain curtain-right"></span>
+              <span className="window-daylight"></span>
             </div>
           </div>
 
           <div className="room-desk">
+            <span className="desk-back-panel" aria-hidden="true"></span>
+            <span className="room-desk-lamp" aria-hidden="true"></span>
+
             <button className="room-calendar" type="button" onClick={() => openInternalPage(SCHEDULE_ROUTE)}>
               <span className="calendar-rings"></span>
               <strong>{roomMonthLabel}</strong>
@@ -1870,21 +1883,30 @@ function App() {
               <small>방송 일정</small>
             </button>
 
+            <button className="room-monitor" type="button" onClick={() => openInternalPage(MONITOR_ROUTE)}>
+              <span className="monitor-screen">
+                <strong>BICHON DATA</strong>
+                <em>다시보기 · 핫클립 · 시트지</em>
+                <span className="screen-folder-row" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </span>
+            </button>
+
             <button className="room-postit" type="button" onClick={() => openInternalPage(NOTICE_ROUTE)}>
               <span>공지</span>
               <strong>{noticeStatus === "loading" ? "불러오는 중" : latestNotice.title}</strong>
             </button>
 
-            <button className="room-monitor" type="button" onClick={() => openInternalPage(MONITOR_ROUTE)}>
-              <span className="monitor-screen">
-                <strong>BICHON DATA</strong>
-                <em>다시보기 · 핫클립 · 시트지</em>
-              </span>
+            <button className="room-phone" type="button" onClick={() => openInternalPage(ABOUT_ROUTE)} aria-label="비숑 소개 열기">
+              <span className="phone-screen"></span>
+              <span className="phone-notch"></span>
             </button>
 
-            <button className="room-phone" type="button" onClick={() => openInternalPage(ABOUT_ROUTE)} aria-label="비숑 소개 열기">
-              <span></span>
-            </button>
+            <span className="room-keyboard" aria-hidden="true"></span>
+            <span className="room-mouse" aria-hidden="true"></span>
           </div>
         </section>
 
