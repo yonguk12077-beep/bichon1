@@ -36,6 +36,7 @@ a {
 }
 
 .entrance-screen {
+  --entrance-floor-start: 82%;
   position: fixed;
   inset: 0;
   z-index: 220;
@@ -44,7 +45,7 @@ a {
   padding: 24px;
   background-color: #d2bfbd;
   background:
-    linear-gradient(180deg, #d2bfbd 0 72%, #bbb8cf 72% 100%),
+    linear-gradient(180deg, #d2bfbd 0 var(--entrance-floor-start), #bbb8cf var(--entrance-floor-start) 100%),
     radial-gradient(circle at 50% 42%, rgba(255, 245, 230, 0.3), transparent 44%),
     #d2bfbd;
   overflow: hidden;
@@ -61,14 +62,14 @@ a {
 
 .entrance-screen::before {
   background:
-    linear-gradient(180deg, transparent 0 calc(72% - 12px), rgba(255, 255, 255, 0.82) calc(72% - 12px) 72%, transparent 72%),
+    linear-gradient(180deg, transparent 0 calc(var(--entrance-floor-start) - 12px), rgba(255, 255, 255, 0.82) calc(var(--entrance-floor-start) - 12px) var(--entrance-floor-start), transparent var(--entrance-floor-start)),
     linear-gradient(90deg, rgba(107, 82, 89, 0.1), transparent 22% 78%, rgba(107, 82, 89, 0.1)),
     radial-gradient(ellipse at 50% 37%, rgba(255, 255, 255, 0.24), transparent 48%);
   opacity: 1;
 }
 
 .entrance-screen::after {
-  top: 72%;
+  top: var(--entrance-floor-start);
   background:
     radial-gradient(ellipse at 50% 0, rgba(255, 249, 210, 0.48), transparent 32%),
     linear-gradient(112deg, transparent 0 45%, rgba(93, 86, 123, 0.16) 45.2%, transparent 46.2%),
