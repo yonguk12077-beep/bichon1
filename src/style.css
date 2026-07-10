@@ -35,6 +35,207 @@ a {
     #f7fcff;
 }
 
+.entrance-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(169, 229, 255, 0.24), rgba(12, 45, 72, 0.82) 46%, rgba(6, 23, 38, 0.96) 74%),
+    linear-gradient(180deg, rgba(5, 16, 28, 0.5), rgba(5, 16, 28, 0.94)),
+    url("/back.png") center / cover;
+  overflow: hidden;
+}
+
+.entrance-screen::before,
+.entrance-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.entrance-screen::before {
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(185, 235, 255, 0.2) 49%, rgba(255, 255, 255, 0.34) 50%, rgba(185, 235, 255, 0.2) 51%, transparent 52% 100%),
+    radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.16), transparent 32%);
+  opacity: 0.72;
+}
+
+.entrance-screen::after {
+  background: radial-gradient(circle at 50% 110%, rgba(119, 204, 242, 0.34), transparent 48%);
+}
+
+.entrance-door {
+  position: relative;
+  width: min(360px, 78vw);
+  height: min(560px, 74vh);
+  border: 1px solid rgba(203, 240, 255, 0.28);
+  border-radius: 170px 170px 18px 18px;
+  background: transparent;
+  box-shadow:
+    0 0 0 10px rgba(255, 255, 255, 0.04),
+    0 34px 120px rgba(7, 31, 50, 0.7);
+  cursor: pointer;
+  perspective: 980px;
+  overflow: visible;
+}
+
+.entrance-door::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border: 1px solid rgba(210, 242, 255, 0.18);
+  border-radius: 188px 188px 28px 28px;
+  box-shadow: inset 0 0 70px rgba(81, 185, 235, 0.13);
+}
+
+.entrance-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background:
+    linear-gradient(120deg, rgba(32, 112, 154, 0.18), rgba(5, 22, 38, 0.64)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(21, 83, 122, 0.1)),
+    rgba(10, 39, 62, 0.9);
+  border: 1px solid rgba(193, 232, 249, 0.24);
+  transition:
+    transform 0.9s cubic-bezier(0.18, 0.82, 0.26, 1),
+    opacity 0.7s ease;
+  transform-style: preserve-3d;
+}
+
+.entrance-panel-left {
+  left: 0;
+  border-radius: 170px 0 0 18px;
+  transform-origin: left center;
+}
+
+.entrance-panel-right {
+  right: 0;
+  border-radius: 0 170px 18px 0;
+  transform-origin: right center;
+}
+
+.entrance-light {
+  position: absolute;
+  inset: 8% 46%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(126, 216, 255, 0.2));
+  filter: blur(7px);
+  opacity: 0.42;
+  transform: scaleY(0.86);
+  transition: 0.9s ease;
+}
+
+.entrance-fluff {
+  position: absolute;
+  left: 50%;
+  bottom: 58px;
+  z-index: 3;
+  width: 96px;
+  height: 76px;
+  border-radius: 52% 48% 44% 56%;
+  background:
+    radial-gradient(circle at 28% 28%, #fff 0 17px, transparent 18px),
+    radial-gradient(circle at 58% 18%, #f8fdff 0 21px, transparent 22px),
+    radial-gradient(circle at 74% 42%, #edf9ff 0 19px, transparent 20px),
+    #ffffff;
+  box-shadow:
+    0 16px 28px rgba(9, 37, 58, 0.32),
+    inset -12px -12px 18px rgba(166, 221, 247, 0.42);
+  transform: translateX(-50%);
+  transition: transform 0.24s ease;
+}
+
+.entrance-fluff::before,
+.entrance-fluff::after {
+  content: "";
+  position: absolute;
+  background: #4b6576;
+  border-radius: 50%;
+}
+
+.entrance-fluff::before {
+  width: 7px;
+  height: 7px;
+  left: 34px;
+  top: 32px;
+  box-shadow: 25px 0 0 #4b6576;
+}
+
+.entrance-fluff::after {
+  width: 11px;
+  height: 7px;
+  left: 44px;
+  top: 45px;
+  background: #7aa6b9;
+}
+
+.entrance-fluff span {
+  position: absolute;
+  right: -22px;
+  top: 28px;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset -7px -6px 10px rgba(166, 221, 247, 0.38);
+  transform: rotate(-12deg);
+  transform-origin: left center;
+  transition: transform 0.24s ease;
+}
+
+.entrance-door:hover .entrance-fluff {
+  transform: translateX(-50%) translateY(-3px);
+}
+
+.entrance-door:hover .entrance-fluff span {
+  transform: rotate(-20deg) translateX(9px);
+}
+
+.entrance-screen.is-opening {
+  animation: entrance-fade 0.98s ease forwards;
+}
+
+.entrance-screen.is-opening .entrance-panel-left {
+  transform: rotateY(-72deg);
+  opacity: 0.78;
+}
+
+.entrance-screen.is-opening .entrance-panel-right {
+  transform: rotateY(72deg);
+  opacity: 0.78;
+}
+
+.entrance-screen.is-opening .entrance-light {
+  inset: -8% 12%;
+  opacity: 0.88;
+  transform: scaleY(1.1);
+}
+
+.entrance-screen.is-opening .entrance-fluff {
+  transform: translateX(-50%) translateY(-12px) scale(0.96);
+}
+
+@keyframes entrance-fade {
+  0% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 .top-bar {
   position: fixed;
   top: 0;

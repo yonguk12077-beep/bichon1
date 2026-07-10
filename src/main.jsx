@@ -108,6 +108,7 @@ const DEFAULT_SCHEDULE = {
   rangeEnd: "",
 };
 const CLIPS_STORAGE_KEY = "bichon-user-clips-v1";
+const ENTRANCE_STORAGE_KEY = "bichon-entry-opened-v1";
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
 const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
@@ -194,6 +195,16 @@ function readUserClips() {
     return rawClips ? JSON.parse(rawClips) : [];
   } catch {
     return [];
+  }
+}
+
+function readEntranceState() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return window.sessionStorage.getItem(ENTRANCE_STORAGE_KEY) === "true";
+  } catch {
+    return false;
   }
 }
 
@@ -577,6 +588,8 @@ function App() {
   const [upboFiles, setUpboFiles] = useState([]);
   const [upboStatus, setUpboStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
+  const [entranceOpened, setEntranceOpened] = useState(() => readEntranceState());
+  const [entranceOpening, setEntranceOpening] = useState(false);
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -590,6 +603,7 @@ function App() {
     category,
     clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
   })).filter((group) => group.clips.length);
+  const showEntrance = activePage === "index" && !entranceOpened;
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -741,6 +755,22 @@ function App() {
 
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMenuOpen(false);
+  };
+
+  const openEntranceDoor = () => {
+    if (entranceOpening) return;
+
+    setEntranceOpening(true);
+    window.setTimeout(() => {
+      try {
+        window.sessionStorage.setItem(ENTRANCE_STORAGE_KEY, "true");
+      } catch {
+        // Ignore private-mode storage failures.
+      }
+
+      setEntranceOpened(true);
+      setEntranceOpening(false);
+    }, 980);
   };
 
   const moveMonth = (value) => {
@@ -1286,6 +1316,24 @@ function App() {
 
   return (
     <div className="app-shell">
+      {showEntrance && (
+        <div className={`entrance-screen ${entranceOpening ? "is-opening" : ""}`}>
+          <button
+            className="entrance-door"
+            type="button"
+            onClick={openEntranceDoor}
+            aria-label="솜뭉치가 문을 열고 입장하기"
+          >
+            <span className="entrance-panel entrance-panel-left"></span>
+            <span className="entrance-panel entrance-panel-right"></span>
+            <span className="entrance-light"></span>
+            <span className="entrance-fluff" aria-hidden="true">
+              <span></span>
+            </span>
+          </button>
+        </div>
+      )}
+
       <header className="top-bar">
         <button className="brand-word" onClick={() => jumpToSection("home")}>
           BICHON
