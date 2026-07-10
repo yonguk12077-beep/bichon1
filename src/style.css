@@ -43,10 +43,9 @@ a {
   place-items: center;
   padding: 24px;
   background:
-    linear-gradient(90deg, rgba(14, 42, 61, 0.92) 0 14%, transparent 27% 73%, rgba(13, 39, 58, 0.94) 86% 100%),
-    linear-gradient(180deg, rgba(9, 31, 47, 0.78) 0 56%, rgba(25, 62, 74, 0.96) 56% 100%),
-    radial-gradient(circle at 50% 44%, rgba(169, 229, 255, 0.2), rgba(11, 42, 65, 0.7) 44%, rgba(5, 18, 30, 0.96) 78%),
-    url("/back.png") center / cover;
+    linear-gradient(90deg, rgba(30, 19, 18, 0.96) 0 15%, transparent 31% 69%, rgba(30, 19, 18, 0.96) 85% 100%),
+    linear-gradient(180deg, rgba(58, 37, 31, 0.96) 0 55%, rgba(43, 29, 25, 0.98) 55% 100%),
+    radial-gradient(circle at 50% 37%, rgba(246, 205, 143, 0.14), rgba(45, 27, 24, 0.86) 48%, rgba(18, 13, 13, 0.98) 80%);
   overflow: hidden;
 }
 
@@ -60,53 +59,54 @@ a {
 
 .entrance-screen::before {
   background:
-    linear-gradient(90deg, transparent 0 18%, rgba(215, 241, 255, 0.13) 18.2%, transparent 18.8% 81.2%, rgba(215, 241, 255, 0.13) 81.8%, transparent 82% 100%),
-    linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 42.2%, transparent 43% 100%),
-    linear-gradient(245deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 42.2%, transparent 43% 100%),
-    radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.12), transparent 34%);
-  opacity: 0.84;
+    linear-gradient(90deg, transparent 0 17%, rgba(255, 220, 170, 0.12) 17.2%, transparent 17.8% 82.2%, rgba(255, 220, 170, 0.12) 82.8%, transparent 83% 100%),
+    repeating-linear-gradient(90deg, rgba(255, 226, 190, 0.05) 0 1px, transparent 1px 86px),
+    radial-gradient(circle at 50% 50%, rgba(255, 214, 158, 0.12), transparent 38%);
+  opacity: 0.82;
 }
 
 .entrance-screen::after {
   top: 56%;
   background:
-    linear-gradient(90deg, rgba(8, 29, 42, 0.58), transparent 24% 76%, rgba(8, 29, 42, 0.58)),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 72px),
-    radial-gradient(ellipse at 50% 15%, rgba(134, 215, 249, 0.28), transparent 46%);
+    linear-gradient(90deg, rgba(26, 18, 16, 0.62), transparent 24% 76%, rgba(26, 18, 16, 0.62)),
+    repeating-linear-gradient(90deg, rgba(255, 224, 181, 0.08) 0 1px, transparent 1px 74px),
+    radial-gradient(ellipse at 50% 14%, rgba(233, 168, 95, 0.2), transparent 48%);
   transform: perspective(420px) rotateX(58deg);
   transform-origin: top;
 }
 
 .entrance-door {
   position: relative;
-  width: min(390px, 80vw);
-  height: min(590px, 76vh);
-  border: 1px solid rgba(222, 246, 255, 0.34);
-  border-radius: 22px 22px 14px 14px;
+  width: min(340px, 74vw);
+  height: min(540px, 72vh);
+  border: 1px solid rgba(244, 211, 160, 0.38);
+  border-radius: 14px 14px 8px 8px;
   background:
-    linear-gradient(90deg, rgba(4, 22, 36, 0.88), rgba(26, 79, 110, 0.22) 50%, rgba(4, 22, 36, 0.88)),
-    rgba(8, 33, 51, 0.86);
+    linear-gradient(90deg, rgba(34, 20, 17, 0.9), rgba(96, 58, 38, 0.22) 50%, rgba(34, 20, 17, 0.9)),
+    rgba(53, 30, 23, 0.92);
   box-shadow:
-    0 0 0 14px rgba(4, 22, 35, 0.42),
-    0 0 0 18px rgba(215, 244, 255, 0.09),
-    0 36px 130px rgba(7, 31, 50, 0.78);
+    0 0 0 16px rgba(30, 17, 14, 0.74),
+    0 0 0 21px rgba(211, 159, 98, 0.12),
+    0 36px 120px rgba(17, 9, 8, 0.82);
   cursor: pointer;
   perspective: 980px;
   overflow: visible;
+  transform: translateY(22px) scale(0.82);
+  transition: transform 0.24s ease;
 }
 
 .entrance-door::before {
   content: "";
   position: absolute;
-  inset: -30px -26px -24px;
-  border: 1px solid rgba(210, 242, 255, 0.2);
-  border-radius: 30px 30px 20px 20px;
+  inset: -30px -25px -24px;
+  border: 1px solid rgba(241, 200, 139, 0.22);
+  border-radius: 22px 22px 14px 14px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 12% 88%, rgba(255, 255, 255, 0.08)),
-    linear-gradient(180deg, rgba(20, 74, 102, 0.64), rgba(3, 18, 30, 0.18));
+    linear-gradient(90deg, rgba(255, 221, 174, 0.1), transparent 12% 88%, rgba(255, 221, 174, 0.08)),
+    linear-gradient(180deg, rgba(67, 38, 29, 0.82), rgba(28, 16, 14, 0.4));
   box-shadow:
-    inset 0 0 70px rgba(81, 185, 235, 0.12),
-    0 18px 54px rgba(2, 14, 25, 0.48);
+    inset 0 0 70px rgba(202, 126, 67, 0.13),
+    0 18px 54px rgba(15, 8, 7, 0.58);
 }
 
 .entrance-door::after {
@@ -118,7 +118,7 @@ a {
   width: 74%;
   height: 56px;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(129, 219, 255, 0.22), transparent 68%);
+  background: radial-gradient(ellipse, rgba(213, 143, 77, 0.22), transparent 68%);
   transform: translateX(-50%);
 }
 
@@ -128,12 +128,12 @@ a {
   bottom: 0;
   width: 50%;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.09), transparent 14% 86%, rgba(0, 0, 0, 0.2)),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 44px),
-    linear-gradient(180deg, rgba(56, 133, 163, 0.28), rgba(7, 29, 45, 0.96));
-  border: 1px solid rgba(193, 232, 249, 0.24);
+    linear-gradient(90deg, rgba(255, 218, 164, 0.11), transparent 14% 86%, rgba(0, 0, 0, 0.22)),
+    repeating-linear-gradient(90deg, rgba(255, 225, 177, 0.04) 0 1px, transparent 1px 42px),
+    linear-gradient(180deg, rgba(126, 75, 43, 0.72), rgba(45, 25, 18, 0.98));
+  border: 1px solid rgba(218, 165, 101, 0.28);
   transition:
-    transform 0.9s cubic-bezier(0.18, 0.82, 0.26, 1),
+    transform 0.82s cubic-bezier(0.18, 0.82, 0.26, 1),
     opacity 0.7s ease;
   transform-style: preserve-3d;
 }
@@ -156,10 +156,10 @@ a {
   z-index: 0;
   border-radius: 14px;
   background:
-    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.42), transparent 13%),
-    linear-gradient(180deg, rgba(186, 235, 255, 0.82), rgba(80, 174, 220, 0.38) 38%, rgba(26, 76, 104, 0.4) 39% 100%),
-    rgba(174, 228, 252, 0.3);
-  box-shadow: inset 0 0 90px rgba(255, 255, 255, 0.36);
+    radial-gradient(circle at 50% 22%, rgba(255, 226, 178, 0.58), transparent 15%),
+    linear-gradient(180deg, rgba(132, 78, 55, 0.84), rgba(91, 54, 42, 0.66) 39%, rgba(50, 32, 28, 0.66) 40% 100%),
+    rgba(115, 72, 52, 0.56);
+  box-shadow: inset 0 0 90px rgba(255, 209, 144, 0.24);
   overflow: hidden;
 }
 
@@ -171,8 +171,8 @@ a {
   bottom: 0;
   height: 39%;
   background:
-    linear-gradient(90deg, rgba(15, 64, 91, 0.28), transparent 16% 84%, rgba(15, 64, 91, 0.28)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(19, 86, 121, 0.48));
+    linear-gradient(90deg, rgba(41, 25, 22, 0.28), transparent 16% 84%, rgba(41, 25, 22, 0.28)),
+    linear-gradient(180deg, rgba(255, 210, 153, 0.1), rgba(77, 48, 38, 0.62));
   clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
 }
 
@@ -182,12 +182,12 @@ a {
   left: 50%;
   width: 42%;
   height: 20%;
-  border: 3px solid rgba(255, 255, 255, 0.58);
+  border: 3px solid rgba(255, 222, 172, 0.48);
   border-radius: 8px;
   background:
-    linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, 0.5) 49% 51%, transparent 52%),
-    linear-gradient(180deg, transparent 48%, rgba(255, 255, 255, 0.42) 49% 51%, transparent 52%),
-    linear-gradient(135deg, rgba(246, 253, 255, 0.88), rgba(110, 211, 251, 0.62));
+    linear-gradient(90deg, transparent 48%, rgba(255, 230, 187, 0.4) 49% 51%, transparent 52%),
+    linear-gradient(180deg, transparent 48%, rgba(255, 230, 187, 0.34) 49% 51%, transparent 52%),
+    linear-gradient(135deg, rgba(255, 213, 150, 0.72), rgba(127, 76, 54, 0.5));
   transform: translateX(-50%);
 }
 
@@ -198,8 +198,8 @@ a {
   bottom: 23%;
   height: 10%;
   border-radius: 8px;
-  background: rgba(20, 68, 94, 0.68);
-  box-shadow: 0 16px 0 rgba(14, 46, 65, 0.7);
+  background: rgba(61, 34, 25, 0.72);
+  box-shadow: 0 16px 0 rgba(39, 23, 18, 0.72);
 }
 
 .entrance-room-desk::before {
@@ -210,8 +210,8 @@ a {
   width: 32%;
   height: 52px;
   border-radius: 8px 8px 4px 4px;
-  background: rgba(8, 37, 56, 0.74);
-  box-shadow: inset 0 0 18px rgba(137, 222, 255, 0.5);
+  background: rgba(34, 22, 19, 0.76);
+  box-shadow: inset 0 0 18px rgba(240, 175, 101, 0.32);
 }
 
 .entrance-room-mic {
@@ -221,7 +221,7 @@ a {
   width: 9px;
   height: 72px;
   border-radius: 999px;
-  background: rgba(8, 37, 56, 0.78);
+  background: rgba(32, 20, 17, 0.78);
 }
 
 .entrance-room-mic::before {
@@ -232,21 +232,21 @@ a {
   width: 28px;
   height: 38px;
   border-radius: 999px;
-  background: rgba(226, 249, 255, 0.82);
-  box-shadow: inset -6px -8px 10px rgba(88, 166, 202, 0.46);
+  background: rgba(245, 214, 171, 0.84);
+  box-shadow: inset -6px -8px 10px rgba(132, 81, 47, 0.42);
   transform: translateX(-50%);
 }
 
 .entrance-light {
   position: absolute;
   z-index: 1;
-  inset: 7% 45%;
+  inset: 8% 47%;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(126, 216, 255, 0.22));
-  filter: blur(7px);
-  opacity: 0.58;
-  transform: scaleY(0.86);
-  transition: 0.9s ease;
+  background: linear-gradient(180deg, rgba(255, 236, 198, 0.9), rgba(214, 142, 77, 0.18));
+  filter: blur(8px);
+  opacity: 0.36;
+  transform: scaleY(0.82);
+  transition: 0.82s ease 0.62s;
 }
 
 .entrance-fluff {
@@ -263,8 +263,8 @@ a {
     radial-gradient(circle at 74% 42%, #edf9ff 0 19px, transparent 20px),
     #ffffff;
   box-shadow:
-    0 16px 28px rgba(9, 37, 58, 0.32),
-    inset -12px -12px 18px rgba(166, 221, 247, 0.42);
+    0 16px 28px rgba(27, 17, 14, 0.34),
+    inset -12px -12px 18px rgba(232, 203, 166, 0.42);
   transform: translateX(-50%);
   transition: transform 0.24s ease;
 }
@@ -301,7 +301,7 @@ a {
   height: 22px;
   border-radius: 999px;
   background: #fff;
-  box-shadow: inset -7px -6px 10px rgba(166, 221, 247, 0.38);
+  box-shadow: inset -7px -6px 10px rgba(232, 203, 166, 0.38);
   transform: rotate(-12deg);
   transform-origin: left center;
   transition: transform 0.24s ease;
@@ -316,15 +316,21 @@ a {
 }
 
 .entrance-screen.is-opening {
-  animation: entrance-fade 0.98s ease forwards;
+  animation: entrance-fade 1.62s ease forwards;
+}
+
+.entrance-screen.is-opening .entrance-door {
+  animation: entrance-approach 1.62s cubic-bezier(0.18, 0.86, 0.22, 1) forwards;
 }
 
 .entrance-screen.is-opening .entrance-panel-left {
+  transition-delay: 0.58s;
   transform: rotateY(-78deg);
   opacity: 0.78;
 }
 
 .entrance-screen.is-opening .entrance-panel-right {
+  transition-delay: 0.58s;
   transform: rotateY(78deg);
   opacity: 0.78;
 }
@@ -336,7 +342,7 @@ a {
 }
 
 .entrance-screen.is-opening .entrance-fluff {
-  transform: translateX(-50%) translateY(-12px) scale(0.96);
+  transform: translateX(-50%) translateY(-26px) scale(1.12);
 }
 
 @keyframes entrance-fade {
@@ -344,13 +350,27 @@ a {
     opacity: 1;
   }
 
-  78% {
+  84% {
     opacity: 1;
   }
 
   100% {
     opacity: 0;
     visibility: hidden;
+  }
+}
+
+@keyframes entrance-approach {
+  0% {
+    transform: translateY(22px) scale(0.82);
+  }
+
+  42% {
+    transform: translateY(6px) scale(1.12);
+  }
+
+  100% {
+    transform: translateY(0) scale(1.28);
   }
 }
 

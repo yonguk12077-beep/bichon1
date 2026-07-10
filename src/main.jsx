@@ -770,7 +770,7 @@ function App() {
 
       setEntranceOpened(true);
       setEntranceOpening(false);
-    }, 980);
+    }, 1620);
   };
 
   const moveMonth = (value) => {
