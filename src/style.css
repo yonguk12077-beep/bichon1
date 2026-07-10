@@ -55,6 +55,7 @@ a {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -79,28 +80,29 @@ a {
 
 .entrance-door {
   position: relative;
-  width: min(380px, 72vw);
-  height: min(560px, 72vh);
+  z-index: 1;
+  width: min(310px, 58vw);
+  height: min(465px, 62vh);
   border: 1px solid rgba(103, 91, 111, 0.28);
   border-radius: 3px;
   background:
     linear-gradient(90deg, rgba(120, 107, 129, 0.34), rgba(86, 76, 98, 0.18) 50%, rgba(120, 107, 129, 0.34)),
     #fdfbd4;
   box-shadow:
-    0 0 0 14px #8d8496,
-    0 0 0 22px rgba(124, 113, 132, 0.22),
-    0 28px 70px rgba(88, 76, 93, 0.24);
+    0 0 0 11px #8d8496,
+    0 0 0 17px rgba(124, 113, 132, 0.2),
+    0 24px 58px rgba(88, 76, 93, 0.22);
   cursor: pointer;
   perspective: 1050px;
   overflow: visible;
-  transform: translateY(18px) scale(0.86);
+  transform: translateY(16px) scale(0.84);
   transition: transform 0.24s ease;
 }
 
 .entrance-door::before {
   content: "";
   position: absolute;
-  inset: -22px -20px -18px;
+  inset: -17px -15px -14px;
   border: 1px solid rgba(104, 94, 116, 0.32);
   border-radius: 3px;
   background:
@@ -108,17 +110,17 @@ a {
     #958ca0;
   box-shadow:
     inset 0 0 26px rgba(255, 255, 255, 0.12),
-    0 16px 40px rgba(87, 74, 96, 0.24);
+    0 14px 34px rgba(87, 74, 96, 0.22);
 }
 
 .entrance-door::after {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -34px;
+  bottom: -28px;
   z-index: -1;
   width: 128%;
-  height: 96px;
+  height: 78px;
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(251, 242, 197, 0.55), rgba(119, 107, 140, 0.16) 46%, transparent 72%);
   transform: translateX(-50%);
@@ -278,15 +280,15 @@ a {
 
 @keyframes entrance-approach {
   0% {
-    transform: translateY(18px) scale(0.86);
+    transform: translateY(16px) scale(0.84);
   }
 
   42% {
-    transform: translateY(8px) scale(1.08);
+    transform: translateY(8px) scale(1.02);
   }
 
   100% {
-    transform: translateY(2px) scale(1.22);
+    transform: translateY(2px) scale(1.14);
   }
 }
 
