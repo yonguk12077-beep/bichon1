@@ -438,24 +438,6 @@ function formatShortDateKey(dateKey) {
   return date ? `${date.getMonth() + 1}/${date.getDate()}` : "";
 }
 
-function getPreviousDateKey(dateKey) {
-  const date = parseDateKey(dateKey);
-  if (!date) return "";
-
-  date.setDate(date.getDate() - 1);
-
-  return getDateKey(date);
-}
-
-function getNextDateKey(dateKey) {
-  const date = parseDateKey(dateKey);
-  if (!date) return "";
-
-  date.setDate(date.getDate() + 1);
-
-  return getDateKey(date);
-}
-
 function formatKoreanDate(date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
@@ -852,35 +834,15 @@ function App() {
     }
 
     const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
-    const currentDate = parseDateKey(dateKey);
-    const previousDateKey = getPreviousDateKey(dateKey);
-    const nextDateKey = getNextDateKey(dateKey);
-    const previousDate = parseDateKey(previousDateKey);
-    const nextDate = parseDateKey(nextDateKey);
-    const previousSchedule = schedules[previousDateKey];
-    const nextSchedule = schedules[nextDateKey];
-    const dataContinuesFromPrevious =
-      isRange && previousSchedule?.groupId && previousSchedule.groupId === schedule.groupId;
-    const dataContinuesToNext = isRange && nextSchedule?.groupId && nextSchedule.groupId === schedule.groupId;
-    const isCurrentMonthPreviousDate =
-      previousDate &&
-      previousDate.getFullYear() === monthDate.getFullYear() &&
-      previousDate.getMonth() === monthDate.getMonth();
-    const isCurrentMonthNextDate =
-      nextDate &&
-      nextDate.getFullYear() === monthDate.getFullYear() &&
-      nextDate.getMonth() === monthDate.getMonth();
-    const continuesFromPrevious =
-      dataContinuesFromPrevious && isCurrentMonthPreviousDate && currentDate?.getDay() !== 0;
-    const continuesToNext =
-      dataContinuesToNext && isCurrentMonthNextDate && currentDate?.getDay() !== 6;
+    const continuesFromPrevious = isRange && dateKey > schedule.rangeStart;
+    const continuesToNext = isRange && dateKey < schedule.rangeEnd;
 
     return {
       schedule,
       isRange,
       continuesFromPrevious,
       continuesToNext,
-      showRangeText: !isRange || !continuesFromPrevious,
+      showRangeText: !isRange || dateKey === schedule.rangeStart,
     };
   };
 
