@@ -37,6 +37,9 @@ a {
 
 .entrance-screen {
   --entrance-floor-start: 82%;
+  --entrance-door-offset: 44px;
+  --entrance-door-approach-offset: 36px;
+  --entrance-door-open-offset: 28px;
   position: fixed;
   inset: 0;
   z-index: 220;
@@ -96,7 +99,7 @@ a {
   cursor: pointer;
   perspective: 1050px;
   overflow: visible;
-  transform: translateY(16px) scale(0.84);
+  transform: translateY(var(--entrance-door-offset)) scale(0.84);
   transition: transform 0.24s ease;
 }
 
@@ -281,15 +284,15 @@ a {
 
 @keyframes entrance-approach {
   0% {
-    transform: translateY(16px) scale(0.84);
+    transform: translateY(var(--entrance-door-offset)) scale(0.84);
   }
 
   42% {
-    transform: translateY(8px) scale(1.02);
+    transform: translateY(var(--entrance-door-approach-offset)) scale(1.02);
   }
 
   100% {
-    transform: translateY(2px) scale(1.14);
+    transform: translateY(var(--entrance-door-open-offset)) scale(1.14);
   }
 }
 
