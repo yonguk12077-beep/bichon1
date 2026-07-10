@@ -15,37 +15,23 @@ const LINKS = {
 };
 
 const HERO_IMAGE_URL = "/hero.png";
-const FRAME_ART_URL = "/bichon-frame-art.png";
 const DEFAULT_LATEST_VOD_ID = "200178791";
 const DEFAULT_LATEST_VOD_URL = `https://vod.sooplive.com/player/${DEFAULT_LATEST_VOD_ID}`;
 const DEFAULT_LATEST_VOD_THUMBNAIL =
   "https://videoimg.sooplive.com/php/SnapshotLoad.php?rowKey=20260630_00FBB175_295216925_2_r";
 const VOD_DISPLAY_LIMIT = 5;
-const ABOUT_PAGE_ID = "about";
-const ABOUT_ROUTE = "/about";
-const SCHEDULE_PAGE_ID = "schedule";
-const SCHEDULE_ROUTE = "/schedule";
-const NOTICE_PAGE_ID = "notice";
-const NOTICE_ROUTE = "/notice";
-const VOD_PAGE_ID = "vod";
-const VOD_ROUTE = "/vod";
-const MONITOR_PAGE_ID = "monitor";
-const MONITOR_ROUTE = "/monitor";
-const COMMUNITY_PAGE_ID = "community";
-const COMMUNITY_ROUTE = "/community";
 const UPBO_PAGE_ID = "upbo";
 const UPBO_ROUTE = "/upbo";
 
 const MENU_ITEMS = [
   { id: "home", label: "HOME" },
-  { id: ABOUT_PAGE_ID, label: "ABOUT", route: ABOUT_ROUTE },
-  { id: SCHEDULE_PAGE_ID, label: "SCHEDULE", route: SCHEDULE_ROUTE },
-  { id: NOTICE_PAGE_ID, label: "NOTICE", route: NOTICE_ROUTE },
-  { id: MONITOR_PAGE_ID, label: "DATA ROOM", route: MONITOR_ROUTE },
-  { id: VOD_PAGE_ID, label: "VOD", route: VOD_ROUTE },
-  { id: "hotclips", label: "HOT CLIPS", route: "/hotclips" },
-  { id: "gallery", label: "GALLERY", route: "/fanart" },
-  { id: COMMUNITY_PAGE_ID, label: "COMMUNITY", route: COMMUNITY_ROUTE },
+  { id: "about", label: "ABOUT" },
+  { id: "schedule", label: "SCHEDULE" },
+  { id: "notice", label: "NOTICE" },
+  { id: "clips", label: "HIGHLIGHTS" },
+  { id: "hotclips", label: "HOT CLIPS" },
+  { id: "gallery", label: "GALLERY" },
+  { id: "contact", label: "COMMUNITY" },
   { id: UPBO_PAGE_ID, label: "시트지", route: UPBO_ROUTE },
 ];
 
@@ -53,12 +39,11 @@ const MENU_DESCRIPTIONS = {
   home: "홈",
   about: "비숑 소개",
   notice: "최근 공지",
-  monitor: "자료실",
-  vod: "다시보기",
+  clips: "하이라이트",
   hotclips: "핫클립",
   gallery: "갤러리",
   schedule: "방송 일정",
-  community: "커뮤니티",
+  contact: "커뮤니티",
   upbo: "시트지",
 };
 
@@ -86,15 +71,8 @@ const FANART_ROUTE = "/fanart";
 const HOTCLIP_PAGE_ID = "hotclips";
 const HOTCLIP_ROUTE = "/hotclips";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
-const ROOM_THEME_STORAGE_KEY = "bichon-room-theme-v1";
 
 const INTERNAL_ROUTES = {
-  [ABOUT_ROUTE]: ABOUT_PAGE_ID,
-  [SCHEDULE_ROUTE]: SCHEDULE_PAGE_ID,
-  [NOTICE_ROUTE]: NOTICE_PAGE_ID,
-  [VOD_ROUTE]: VOD_PAGE_ID,
-  [MONITOR_ROUTE]: MONITOR_PAGE_ID,
-  [COMMUNITY_ROUTE]: COMMUNITY_PAGE_ID,
   [FANART_ROUTE]: FANART_GALLERY_ID,
   [HOTCLIP_ROUTE]: HOTCLIP_PAGE_ID,
   [UPBO_ROUTE]: UPBO_PAGE_ID,
@@ -130,7 +108,6 @@ const DEFAULT_SCHEDULE = {
   rangeEnd: "",
 };
 const CLIPS_STORAGE_KEY = "bichon-user-clips-v1";
-const ENTRANCE_STORAGE_KEY = "bichon-entry-opened-v1";
 
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
 const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
@@ -217,27 +194,6 @@ function readUserClips() {
     return rawClips ? JSON.parse(rawClips) : [];
   } catch {
     return [];
-  }
-}
-
-function readEntranceState() {
-  if (typeof window === "undefined") return false;
-
-  try {
-    return window.sessionStorage.getItem(ENTRANCE_STORAGE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function readRoomTheme() {
-  if (typeof window === "undefined") return "light";
-
-  try {
-    const savedTheme = window.localStorage.getItem(ROOM_THEME_STORAGE_KEY);
-    return savedTheme === "dark" ? "dark" : "light";
-  } catch {
-    return "light";
   }
 }
 
@@ -621,18 +577,19 @@ function App() {
   const [upboFiles, setUpboFiles] = useState([]);
   const [upboStatus, setUpboStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
-  const [entranceOpened, setEntranceOpened] = useState(() => readEntranceState());
-  const [entranceOpening, setEntranceOpening] = useState(false);
-  const [roomTheme, setRoomTheme] = useState(() => readRoomTheme());
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
-  const roomMonthLabel = `${today.getMonth() + 1}월`;
-  const roomDayLabel = String(today.getDate()).padStart(2, "0");
   const activeGalleryItems = galleryItems[FANART_GALLERY_ID] || [];
+  const galleryPreviewItems = activeGalleryItems
+    .slice(0, 5)
+    .map((item) => ({ ...item, variant: "" }));
   const vodCards = latestVods.length ? latestVods : FALLBACK_VODS;
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
-  const showEntrance = activePage === "index" && !entranceOpened;
+  const hotclipPreviewGroups = HOTCLIP_CATEGORIES.map((category) => ({
+    category,
+    clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
+  })).filter((group) => group.clips.length);
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -764,14 +721,6 @@ function App() {
     saveUserClips(userClips);
   }, [userClips]);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(ROOM_THEME_STORAGE_KEY, roomTheme);
-    } catch {
-      // Ignore storage failures for theme preference.
-    }
-  }, [roomTheme]);
-
   const openInternalPage = (route) => {
     window.history.pushState({}, "", route);
     setActivePage(getPageFromPath(route));
@@ -792,22 +741,6 @@ function App() {
 
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setMenuOpen(false);
-  };
-
-  const openEntranceDoor = () => {
-    if (entranceOpening) return;
-
-    setEntranceOpening(true);
-    window.setTimeout(() => {
-      try {
-        window.sessionStorage.setItem(ENTRANCE_STORAGE_KEY, "true");
-      } catch {
-        // Ignore private-mode storage failures.
-      }
-
-      setEntranceOpened(true);
-      setEntranceOpening(false);
-    }, 1620);
   };
 
   const moveMonth = (value) => {
@@ -933,23 +866,26 @@ function App() {
     openInternalPage(HOTCLIP_ROUTE);
   };
 
-  const closeRoutePage = () => {
+  const closeUpboPage = () => {
     window.history.pushState({}, "", "/");
     setActivePage("index");
-    setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const closeUpboPage = () => {
-    openInternalPage(MONITOR_ROUTE);
-  };
-
   const closeHotclipPage = () => {
-    openInternalPage(MONITOR_ROUTE);
+    window.history.pushState({}, "", "/");
+    setActivePage("index");
+    window.setTimeout(() => {
+      document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   const closeGalleryPage = () => {
-    closeRoutePage();
+    window.history.pushState({}, "", "/");
+    setActivePage("index");
+    window.setTimeout(() => {
+      document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   const addGalleryFiles = async (event, categoryId) => {
@@ -1162,426 +1098,14 @@ function App() {
     }
   };
 
-  const appShellClass = `app-shell room-theme-${roomTheme}`;
-  const siteChrome = (
-    <>
-      <header className="top-bar">
-        <button className="brand-word" onClick={closeRoutePage}>
-          BICHON
-        </button>
-        <button
-          className={`hamburger ${menuOpen ? "open" : ""}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="메뉴 열기"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </header>
-
-      {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
-
-      <aside className={`side-menu ${menuOpen ? "show" : ""}`}>
-        <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
-          ×
-        </button>
-        <div className="side-menu-brand">
-          <strong>BICHON</strong>
-          <small>VIRTUAL STREAMER</small>
-        </div>
-        <nav>
-          {MENU_ITEMS.map((item) => (
-            <button key={item.id} onClick={() => (item.route ? openInternalPage(item.route) : jumpToSection(item.id))}>
-              <span>{item.label}</span>
-              <small>{MENU_DESCRIPTIONS[item.id]}</small>
-            </button>
-          ))}
-        </nav>
-        <div className="menu-socials">
-          <a href={LINKS.soop} target="_blank" rel="noreferrer">SOOP</a>
-          <a href={LINKS.cafe} target="_blank" rel="noreferrer">CAFE</a>
-          <a href={LINKS.youtube} target="_blank" rel="noreferrer">YT</a>
-          <a href={LINKS.fansim} target="_blank" rel="noreferrer">M</a>
-        </div>
-      </aside>
-    </>
-  );
-
-  const clipComposerDialog = clipComposerOpen && (
-    <div
-      className="modal-backdrop"
-      onClick={() => {
-        setClipComposerOpen(false);
-        setClipError("");
-      }}
-    >
-      <form className="clip-modal" onSubmit={addClipLink} onClick={(event) => event.stopPropagation()}>
-        <button
-          className="modal-close"
-          type="button"
-          onClick={() => {
-            setClipComposerOpen(false);
-            setClipError("");
-          }}
-          aria-label="닫기"
-        >
-          ×
-        </button>
-
-        <h2>영상 링크 추가</h2>
-        <p>유튜브 링크는 카드 안에 미리보기로 표시되고, SOOP 다시보기 링크는 바로가기 카드로 추가됩니다.</p>
-
-        <label>
-          영상 링크
-          <input
-            value={clipDraftUrl}
-            onChange={(event) => {
-              setClipDraftUrl(event.target.value);
-              setClipError("");
-            }}
-            placeholder="https://..."
-            autoFocus
-          />
-        </label>
-
-        {clipError && <strong className="form-error">{clipError}</strong>}
-
-        <button className="save-button" type="submit">
-          추가하기
-        </button>
-      </form>
-    </div>
-  );
-
-  const scheduleEditorDialog = editingDate && (
-    <div className="modal-backdrop" onClick={closeScheduleEditor}>
-      <form className="schedule-modal" onSubmit={saveSchedule} onClick={(event) => event.stopPropagation()}>
-        <button className="modal-close" type="button" onClick={closeScheduleEditor} aria-label="닫기">
-          ×
-        </button>
-
-        <h2>{formatKoreanDate(editingDate.date)} 일정 수정</h2>
-
-        <label>
-          방송 구분
-          <select value={scheduleDraft.type} onChange={(event) => updateDraft("type", event.target.value)}>
-            {BROADCAST_TYPES.map((type) => (
-              <option value={type} key={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          방송 시작 시간
-          <input
-            value={scheduleDraft.startTime}
-            onChange={(event) => updateDraft("startTime", event.target.value)}
-            placeholder="예: 오후 8시"
-          />
-        </label>
-
-        <label>
-          방송 내용 / 비고
-          <input
-            value={scheduleDraft.memo}
-            onChange={(event) => updateDraft("memo", event.target.value)}
-            placeholder="예: 마크 하코 대결"
-          />
-        </label>
-
-        <div className="schedule-range-fields">
-          <label>
-            장기 컨텐츠 시작일
-            <input
-              type="date"
-              value={scheduleDraft.rangeStart}
-              onChange={(event) => updateDraft("rangeStart", event.target.value)}
-            />
-          </label>
-          <label>
-            장기 컨텐츠 종료일
-            <input
-              type="date"
-              value={scheduleDraft.rangeEnd}
-              min={scheduleDraft.rangeStart || editingDate.key}
-              onChange={(event) => updateDraft("rangeEnd", event.target.value)}
-            />
-          </label>
-        </div>
-
-        <div className="modal-actions">
-          <button className="delete-button" type="button" onClick={deleteSchedule}>
-            삭제하기
-          </button>
-          <button className="save-button" type="submit">
-            저장하기
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-
-  const renderPageShell = (children, frameClassName = "fanart-page-frame", extras = null) => (
-    <div className={appShellClass}>
-      {siteChrome}
-      <main className={`site-frame ${frameClassName}`}>
-        {children}
-      </main>
-      {extras}
-    </div>
-  );
-
-  if (activePage === ABOUT_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section about-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={closeRoutePage}>
-          ← 방으로 돌아가기
-        </button>
-        <div className="section-copy">
-          <SectionTitle number="01" title="비숑을 소개합니다" eyebrow="ABOUT BICHON" />
-          <p className="lead-text">
-            장난기 많은 비숑입니다. 배그와 종겜을 좋아하고 소통도 좋아해요.
-          </p>
-          <div className="tag-list">
-            {ABOUT_TAGS.map((tag) => (
-              <span key={tag}>#{tag}</span>
-            ))}
-          </div>
-          <div className="mini-history" aria-label="비숑 히스토리">
-            {HISTORY.map(([date, text]) => (
-              <article key={date}>
-                <strong>{date}</strong>
-                <span>{text}</span>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <article className="profile-panel">
-          {PROFILE_ITEMS.map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              <strong>{value}</strong>
-            </div>
-          ))}
-        </article>
-      </section>
-    );
-  }
-
-  if (activePage === SCHEDULE_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section schedule-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={closeRoutePage}>
-          ← 방으로 돌아가기
-        </button>
-        <div className="section-row">
-          <SectionTitle number="02" title="방송 일정" eyebrow="SCHEDULE" />
-          {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
-          {fanpageStatus === "offline" && (
-            <small className="fanpage-status fanpage-status-offline">
-              공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
-            </small>
-          )}
-        </div>
-
-        <div className="schedule-showcase">
-          <aside className="weekly-side-card">
-            <div className="weekly-side-heading">
-              <span>WEEKLY SCHEDULE</span>
-              <strong>{verticalWeekDates[0].label} - {verticalWeekDates[6].label}</strong>
-            </div>
-            <div className="vertical-week-list">
-              {verticalWeekDates.map((item) => {
-                const schedule = schedules[item.key];
-
-                return (
-                  <button
-                    className={`vertical-week-row ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
-                    type="button"
-                    key={item.key}
-                    onClick={() => openScheduleEditor(item.date)}
-                  >
-                    <span>
-                      <b>{item.weekday}</b>
-                      <em>{item.label}</em>
-                    </span>
-                    <strong>{schedule?.type || "일정 대기"}</strong>
-                    {schedule?.startTime && <small>{schedule.startTime}</small>}
-                    {schedule?.memo && <p>{schedule.memo}</p>}
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <section className="schedule-card">
-            <div className="calendar-control">
-              <button onClick={() => moveMonth(-1)} aria-label="이전 달">‹</button>
-              <span>{monthDate.getFullYear()}년 {monthDate.getMonth() + 1}월</span>
-              <button onClick={() => moveMonth(1)} aria-label="다음 달">›</button>
-            </div>
-            <div className="calendar-head">
-              {WEEKDAYS.map((day) => (
-                <span key={day}>{day}</span>
-              ))}
-            </div>
-            <div className="calendar-grid">
-              {monthDays.map((item, index) =>
-                item ? (
-                  <button
-                    className={`day ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
-                    key={item.key}
-                    onClick={() => openScheduleEditor(item.date)}
-                  >
-                    <b>{item.day}</b>
-                    {renderSchedule(item.key)}
-                  </button>
-                ) : (
-                  <div className="day empty" key={`empty-${index}`} />
-                )
-              )}
-            </div>
-          </section>
-        </div>
-      </section>,
-      "fanart-page-frame route-page-frame",
-      scheduleEditorDialog
-    );
-  }
-
-  if (activePage === NOTICE_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section notice-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={closeRoutePage}>
-          ← 방으로 돌아가기
-        </button>
-        <div className="section-row">
-          <SectionTitle number="03" title="최신 공지" eyebrow="NOTICE" />
-          <a className="notice-link-button" href={latestNotice.url} target="_blank" rel="noreferrer">
-            원문으로 이동하기
-          </a>
-        </div>
-        <article className={`notice-post-card ${noticeExpanded ? "is-open" : ""}`}>
-          <button
-            className="notice-post-summary"
-            type="button"
-            onClick={() => setNoticeExpanded((value) => !value)}
-            aria-expanded={noticeExpanded}
-          >
-            <small>{noticeStatus === "loading" ? "공지 불러오는 중" : latestNotice.date}</small>
-            <strong>{latestNotice.title}</strong>
-            <span>{noticeExpanded ? "접기" : "내용 보기"}</span>
-          </button>
-
-          {noticeExpanded && (
-            <div className="notice-post-detail">
-              <p>{latestNotice.body}</p>
-              <a href={latestNotice.url} target="_blank" rel="noreferrer">
-                원문으로 이동하기
-              </a>
-            </div>
-          )}
-        </article>
-      </section>
-    );
-  }
-
-  if (activePage === VOD_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section highlights-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={() => openInternalPage(MONITOR_ROUTE)}>
-          ← 자료실로 돌아가기
-        </button>
-        <div className="section-row">
-          <SectionTitle number="04" title="비숑 VOD" eyebrow="HIGHLIGHTS" />
-          <div className="clip-actions">
-            <button className="vod-refresh-button" type="button" onClick={loadLatestVod}>
-              {vodStatus === "loading" ? "다시보기 확인 중" : "최신 다시보기 새로고침"}
-            </button>
-            <button className="clip-add-button" type="button" onClick={() => setClipComposerOpen(true)}>
-              영상 추가
-            </button>
-          </div>
-        </div>
-        <div className="clip-grid">
-          {clipCards.map((clip) => (
-            <a className="clip-card" href={clip.href} target="_blank" rel="noreferrer" key={clip.id || clip.title}>
-              <span>{clip.badge}</span>
-              {clip.embedUrl ? (
-                <iframe src={clip.embedUrl} title={clip.title} allowFullScreen />
-              ) : (
-                <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
-              )}
-              <strong>{clip.title}</strong>
-              {clip.text && <p>{clip.text}</p>}
-            </a>
-          ))}
-        </div>
-      </section>,
-      "fanart-page-frame route-page-frame",
-      clipComposerDialog
-    );
-  }
-
-  if (activePage === MONITOR_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section monitor-route-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={closeRoutePage}>
-          ← 방으로 돌아가기
-        </button>
-        <div className="monitor-folder-window">
-          <SectionTitle number="PC" title="비숑 자료실" eyebrow="BICHON DESKTOP" />
-          <div className="monitor-folder-grid">
-            <button type="button" onClick={() => openInternalPage(VOD_ROUTE)}>
-              <span></span>
-              <strong>다시보기</strong>
-            </button>
-            <button type="button" onClick={openHotclipPage}>
-              <span></span>
-              <strong>핫클립</strong>
-            </button>
-            <button type="button" onClick={() => openInternalPage(UPBO_ROUTE)}>
-              <span></span>
-              <strong>시트지</strong>
-            </button>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (activePage === COMMUNITY_PAGE_ID) {
-    return renderPageShell(
-      <section className="page-section community-section route-page-section">
-        <button className="gallery-back-button" type="button" onClick={closeRoutePage}>
-          ← 방으로 돌아가기
-        </button>
-        <SectionTitle number="07" title="함께해요, 솜뭉치!" eyebrow="COMMUNITY" />
-        <div className="community-grid">
-          {COMMUNITY_LINKS.map((link) => (
-            <a href={link.href} target="_blank" rel="noreferrer" key={link.title}>
-              <strong>{link.title}</strong>
-              <span>{link.text}</span>
-            </a>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
   if (activePage === UPBO_PAGE_ID) {
     return (
-      <div className={appShellClass}>
-        {siteChrome}
+      <div className="app-shell">
         <main className="site-frame fanart-page-frame">
           <section className="page-section upbo-route-section">
             <div className="gallery-page-shell">
               <button className="gallery-back-button" type="button" onClick={closeUpboPage}>
-                ← 자료실로 돌아가기
+                ← 메인으로 돌아가기
               </button>
 
               <div className="gallery-page-header">
@@ -1628,13 +1152,12 @@ function App() {
 
   if (activePage === HOTCLIP_PAGE_ID) {
     return (
-      <div className={appShellClass}>
-        {siteChrome}
+      <div className="app-shell">
         <main className="site-frame fanart-page-frame">
           <section className="page-section hotclips-section hotclips-route-section">
             <div className="gallery-page-shell">
               <button className="gallery-back-button" type="button" onClick={closeHotclipPage}>
-                ← 자료실로 돌아가기
+                ← 메인으로 돌아가기
               </button>
 
               <div className="gallery-page-header">
@@ -1668,11 +1191,6 @@ function App() {
               </form>
 
               {hotclipError && <strong className="form-error">{hotclipError}</strong>}
-              {hotclipStatus === "offline" && (
-                <small className="fanpage-status fanpage-status-offline">
-                  핫클립 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
-                </small>
-              )}
 
               <div className="hotclip-category-stack">
                 {HOTCLIP_CATEGORIES.map((category) => {
@@ -1719,13 +1237,12 @@ function App() {
 
   if (activePage === FANART_GALLERY_ID) {
     return (
-      <div className={appShellClass}>
-        {siteChrome}
+      <div className="app-shell">
         <main className="site-frame fanart-page-frame">
           <section className="page-section gallery-section fanart-route-section">
             <div className="gallery-page-shell">
               <button className="gallery-back-button" type="button" onClick={closeGalleryPage}>
-                ← 방으로 돌아가기
+                ← 메인으로 돌아가기
               </button>
 
               <div className="gallery-page-header">
@@ -1768,27 +1285,7 @@ function App() {
   }
 
   return (
-    <div className={appShellClass}>
-      {showEntrance && (
-        <div className={`entrance-screen ${entranceOpening ? "is-opening" : ""}`}>
-          <button
-            className="entrance-door"
-            type="button"
-            onClick={openEntranceDoor}
-            aria-label="문을 열고 입장하기"
-          >
-            <span className="entrance-room" aria-hidden="true">
-              <span className="entrance-room-window"></span>
-              <span className="entrance-room-desk"></span>
-              <span className="entrance-room-mic"></span>
-            </span>
-            <span className="entrance-panel entrance-panel-left"></span>
-            <span className="entrance-panel entrance-panel-right"></span>
-            <span className="entrance-light"></span>
-          </button>
-        </div>
-      )}
-
+    <div className="app-shell">
       <header className="top-bar">
         <button className="brand-word" onClick={() => jumpToSection("home")}>
           BICHON
@@ -1831,85 +1328,285 @@ function App() {
       </aside>
 
       <main className="site-frame">
-        <section className="room-hub-section" id="home">
-          <div className="room-theme-switch" aria-label="방 조명 모드">
-            <button
-              className={roomTheme === "light" ? "active" : ""}
-              type="button"
-              onClick={() => setRoomTheme("light")}
-              aria-label="라이트 모드"
-            >
-              ☀
-            </button>
-            <button
-              className={roomTheme === "dark" ? "active" : ""}
-              type="button"
-              onClick={() => setRoomTheme("dark")}
-              aria-label="다크 모드"
-            >
-              ☾
-            </button>
-          </div>
-
-          <div className="room-depth" aria-hidden="true">
-            <span className="room-ceiling-light light-one"></span>
-            <span className="room-ceiling-light light-two"></span>
-            <span className="room-floor-rug"></span>
-          </div>
-
-          <div className="room-wall">
-            <button className="room-frame" type="button" onClick={openFanartPage} aria-label="팬아트 갤러리 열기">
-              <img src={FRAME_ART_URL} alt="" />
-              <span>팬아트</span>
-            </button>
-
-            <div className="room-window" aria-hidden="true">
-              <span className="window-cross vertical"></span>
-              <span className="window-cross horizontal"></span>
-              <span className="window-curtain curtain-left"></span>
-              <span className="window-curtain curtain-right"></span>
-              <span className="window-daylight"></span>
+        <section className="hero-section" id="home">
+          <div className="hero-art">
+            <div className="hero-portrait">
+              <img className="hero-character" src={HERO_IMAGE_URL} alt="비숑 프로필" />
             </div>
           </div>
 
-          <div className="room-desk">
-            <span className="desk-back-panel" aria-hidden="true"></span>
-            <span className="room-desk-lamp" aria-hidden="true"></span>
+          <div className="hero-copy">
+            <span>오늘도 같이 놀자!</span>
+            <h1>BICHON</h1>
+            <strong>VIRTUAL STREAMER</strong>
+            <p>게임과 소통을 좋아하는 비숑과 솜뭉치의 팬페이지입니다.</p>
+          </div>
 
-            <button className="room-calendar" type="button" onClick={() => openInternalPage(SCHEDULE_ROUTE)}>
-              <span className="calendar-rings"></span>
-              <strong>{roomMonthLabel}</strong>
-              <em>{roomDayLabel}</em>
-              <small>방송 일정</small>
-            </button>
+          <button className="scroll-cue" onClick={() => jumpToSection("about")}>
+            SCROLL DOWN
+          </button>
+        </section>
 
-            <button className="room-monitor" type="button" onClick={() => openInternalPage(MONITOR_ROUTE)}>
-              <span className="monitor-screen">
-                <strong>BICHON DATA</strong>
-                <em>다시보기 · 핫클립 · 시트지</em>
-                <span className="screen-folder-row" aria-hidden="true">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </span>
-              </span>
-            </button>
+        <section className="hero-status-strip" aria-label="방송 요약">
+          <article>
+            <span>RECENT NOTICE</span>
+            <strong>{noticeStatus === "loading" ? "공지 확인 중" : latestNotice.title}</strong>
+            <p>{noticeStatus === "loading" ? "SOOP 공지를 불러오는 중" : latestNotice.date}</p>
+          </article>
+          <article>
+            <span>FANDOM NAME</span>
+            <strong>솜뭉치</strong>
+            <p>비숑의 소중한 친구들</p>
+          </article>
+          <article>
+            <span>DEBUT</span>
+            <strong>2024.04.12</strong>
+            <p>비숑의 첫 방송</p>
+          </article>
+        </section>
 
-            <button className="room-postit" type="button" onClick={() => openInternalPage(NOTICE_ROUTE)}>
-              <span>공지</span>
-              <strong>{noticeStatus === "loading" ? "불러오는 중" : latestNotice.title}</strong>
-            </button>
+        <section className="page-section about-section" id="about">
+          <div className="section-copy">
+            <SectionTitle number="01" title="비숑을 소개합니다" eyebrow="ABOUT BICHON" />
+            <p className="lead-text">
+              장난기 많은 비숑입니다. 배그와 종겜을 좋아하고 소통도 좋아해요.
+            </p>
+            <div className="tag-list">
+              {ABOUT_TAGS.map((tag) => (
+                <span key={tag}>#{tag}</span>
+              ))}
+            </div>
+            <div className="mini-history" aria-label="비숑 히스토리">
+              {HISTORY.map(([date, text]) => (
+                <article key={date}>
+                  <strong>{date}</strong>
+                  <span>{text}</span>
+                </article>
+              ))}
+            </div>
+          </div>
 
-            <button className="room-phone" type="button" onClick={() => openInternalPage(ABOUT_ROUTE)} aria-label="비숑 소개 열기">
-              <span className="phone-screen"></span>
-              <span className="phone-notch"></span>
-            </button>
+          <article className="profile-panel">
+            {PROFILE_ITEMS.map(([label, value]) => (
+              <div key={label}>
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+          </article>
 
-            <span className="room-keyboard" aria-hidden="true"></span>
-            <span className="room-mouse" aria-hidden="true"></span>
+        </section>
+
+        <section className="page-section schedule-section" id="schedule">
+          <div className="section-row">
+            <SectionTitle number="02" title="방송 일정" eyebrow="SCHEDULE" />
+            {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
+            {fanpageStatus === "offline" && (
+              <small className="fanpage-status fanpage-status-offline">
+                공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
+              </small>
+            )}
+          </div>
+
+          <div className="schedule-showcase">
+            <aside className="weekly-side-card">
+              <div className="weekly-side-heading">
+                <span>WEEKLY SCHEDULE</span>
+                <strong>{verticalWeekDates[0].label} - {verticalWeekDates[6].label}</strong>
+              </div>
+              <div className="vertical-week-list">
+                {verticalWeekDates.map((item) => {
+                  const schedule = schedules[item.key];
+
+                  return (
+                    <button
+                      className={`vertical-week-row ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
+                      type="button"
+                      key={item.key}
+                      onClick={() => openScheduleEditor(item.date)}
+                    >
+                      <span>
+                        <b>{item.weekday}</b>
+                        <em>{item.label}</em>
+                      </span>
+                      <strong>{schedule?.type || "일정 대기"}</strong>
+                      {schedule?.startTime && <small>{schedule.startTime}</small>}
+                      {schedule?.memo && <p>{schedule.memo}</p>}
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+
+            <section className="schedule-card">
+              <div className="calendar-control">
+                <button onClick={() => moveMonth(-1)} aria-label="이전 달">‹</button>
+                <span>{monthDate.getFullYear()}년 {monthDate.getMonth() + 1}월</span>
+                <button onClick={() => moveMonth(1)} aria-label="다음 달">›</button>
+              </div>
+              <div className="calendar-head">
+                {WEEKDAYS.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="calendar-grid">
+                {monthDays.map((item, index) =>
+                  item ? (
+                    <button
+                      className={`day ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
+                      key={item.key}
+                      onClick={() => openScheduleEditor(item.date)}
+                    >
+                      <b>{item.day}</b>
+                      {renderSchedule(item.key)}
+                    </button>
+                  ) : (
+                    <div className="day empty" key={`empty-${index}`} />
+                  )
+                )}
+              </div>
+            </section>
           </div>
         </section>
 
+        <section className="page-section notice-section" id="notice">
+          <div className="section-row">
+            <SectionTitle number="03" title="최신 공지" eyebrow="NOTICE" />
+            <a className="notice-link-button" href={latestNotice.url} target="_blank" rel="noreferrer">
+              원문으로 이동하기
+            </a>
+          </div>
+          <article className={`notice-post-card ${noticeExpanded ? "is-open" : ""}`}>
+            <button
+              className="notice-post-summary"
+              type="button"
+              onClick={() => setNoticeExpanded((value) => !value)}
+              aria-expanded={noticeExpanded}
+            >
+              <small>{noticeStatus === "loading" ? "공지 불러오는 중" : latestNotice.date}</small>
+              <strong>{latestNotice.title}</strong>
+              <span>{noticeExpanded ? "접기" : "내용 보기"}</span>
+            </button>
+
+            {noticeExpanded && (
+              <div className="notice-post-detail">
+                <p>{latestNotice.body}</p>
+                <a href={latestNotice.url} target="_blank" rel="noreferrer">
+                  원문으로 이동하기
+                </a>
+              </div>
+            )}
+          </article>
+        </section>
+
+        <section className="page-section highlights-section" id="clips">
+          <div className="section-row">
+            <SectionTitle number="04" title="비숑 VOD" eyebrow="HIGHLIGHTS" />
+            <div className="clip-actions">
+              <button className="vod-refresh-button" type="button" onClick={loadLatestVod}>
+                {vodStatus === "loading" ? "다시보기 확인 중" : "최신 다시보기 새로고침"}
+              </button>
+              <button className="clip-add-button" type="button" onClick={() => setClipComposerOpen(true)}>
+                영상 추가
+              </button>
+            </div>
+          </div>
+          <div className="clip-grid">
+            {clipCards.map((clip) => (
+              <a className="clip-card" href={clip.href} target="_blank" rel="noreferrer" key={clip.id || clip.title}>
+                <span>{clip.badge}</span>
+                {clip.embedUrl ? (
+                  <iframe src={clip.embedUrl} title={clip.title} allowFullScreen />
+                ) : (
+                  <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                )}
+                <strong>{clip.title}</strong>
+                {clip.text && <p>{clip.text}</p>}
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section className="page-section hotclips-section" id="hotclips">
+          <div className="section-row gallery-heading">
+            <SectionTitle number="05" title="핫클립" eyebrow="HOT CLIPS" />
+            <button className="gallery-manage-button" type="button" onClick={openHotclipPage}>
+              이동하기
+            </button>
+          </div>
+
+          {hotclipStatus === "offline" && (
+            <small className="fanpage-status fanpage-status-offline">
+              핫클립 저장소 연결 실패 — Supabase 스키마와 Vercel 환경 변수를 확인해주세요
+            </small>
+          )}
+
+          {hotclipPreviewGroups.length > 0 && (
+            <div
+              className={`hotclip-preview-grid ${
+                hotclipPreviewGroups.length > 1 ? "has-divider" : "is-single"
+              }`}
+            >
+              {hotclipPreviewGroups.map(({ category, clips }) => (
+                <div className="hotclip-preview-column" key={category.id}>
+                  {clips.map((clip) => (
+                    <button
+                      className="clip-card hotclip-preview-card"
+                      type="button"
+                      onClick={openHotclipPage}
+                      key={clip.id}
+                    >
+                      <span>{category.shortLabel}</span>
+                      <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                      <strong>{clip.title}</strong>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="page-section gallery-section" id="gallery">
+          <div className="section-row gallery-heading">
+            <SectionTitle number="06" title="비숑팬아트" eyebrow="GALLERY" />
+            <button className="gallery-manage-button" type="button" onClick={openFanartPage}>
+              이동하기
+            </button>
+          </div>
+
+          <div className="gallery-mosaic">
+            {galleryPreviewItems.map((image) => (
+              <button
+                className={`gallery-tile ${image.variant ? `is-${image.variant}` : ""}`}
+                type="button"
+                key={image.id}
+                onClick={openFanartPage}
+              >
+                <img src={image.src} alt={image.title} />
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="page-section community-section" id="contact">
+          <SectionTitle number="07" title="함께해요, 솜뭉치!" eyebrow="COMMUNITY" />
+          <div className="community-grid">
+            {COMMUNITY_LINKS.map((link) => (
+              <a href={link.href} target="_blank" rel="noreferrer" key={link.title}>
+                <strong>{link.title}</strong>
+                <span>{link.text}</span>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <footer className="footer-section">
+          <div>
+            <strong>Thank you for always being here!</strong>
+            <p>언제나 비숑을 응원해줘서 고마워요. 앞으로도 오래오래 함께해요!</p>
+          </div>
+        </footer>
       </main>
 
       {clipComposerOpen && (
