@@ -42,10 +42,12 @@ a {
   display: grid;
   place-items: center;
   padding: 24px;
+  background-color: #1f1411;
   background:
-    linear-gradient(90deg, rgba(30, 19, 18, 0.96) 0 15%, transparent 31% 69%, rgba(30, 19, 18, 0.96) 85% 100%),
-    linear-gradient(180deg, rgba(58, 37, 31, 0.96) 0 55%, rgba(43, 29, 25, 0.98) 55% 100%),
-    radial-gradient(circle at 50% 37%, rgba(246, 205, 143, 0.14), rgba(45, 27, 24, 0.86) 48%, rgba(18, 13, 13, 0.98) 80%);
+    linear-gradient(90deg, rgba(18, 10, 9, 0.98) 0 14%, rgba(58, 35, 28, 0.98) 31% 69%, rgba(18, 10, 9, 0.98) 86% 100%),
+    linear-gradient(180deg, #442b24 0 56%, #2a1a16 56% 100%),
+    radial-gradient(circle at 50% 38%, rgba(246, 205, 143, 0.2), #3b251f 42%, #1a100e 78%),
+    #1f1411;
   overflow: hidden;
 }
 
@@ -59,26 +61,28 @@ a {
 
 .entrance-screen::before {
   background:
-    linear-gradient(90deg, transparent 0 17%, rgba(255, 220, 170, 0.12) 17.2%, transparent 17.8% 82.2%, rgba(255, 220, 170, 0.12) 82.8%, transparent 83% 100%),
-    repeating-linear-gradient(90deg, rgba(255, 226, 190, 0.05) 0 1px, transparent 1px 86px),
-    radial-gradient(circle at 50% 50%, rgba(255, 214, 158, 0.12), transparent 38%);
-  opacity: 0.82;
+    linear-gradient(90deg, rgba(12, 7, 6, 0.9) 0 11%, transparent 22% 78%, rgba(12, 7, 6, 0.9) 89% 100%),
+    linear-gradient(90deg, transparent 0 18%, rgba(255, 220, 170, 0.1) 18.2%, transparent 18.8% 81.2%, rgba(255, 220, 170, 0.1) 81.8%, transparent 82% 100%),
+    repeating-linear-gradient(90deg, rgba(255, 226, 190, 0.045) 0 1px, transparent 1px 92px),
+    radial-gradient(circle at 50% 47%, rgba(255, 214, 158, 0.08), transparent 40%);
+  opacity: 1;
 }
 
 .entrance-screen::after {
   top: 56%;
   background:
-    linear-gradient(90deg, rgba(26, 18, 16, 0.62), transparent 24% 76%, rgba(26, 18, 16, 0.62)),
-    repeating-linear-gradient(90deg, rgba(255, 224, 181, 0.08) 0 1px, transparent 1px 74px),
-    radial-gradient(ellipse at 50% 14%, rgba(233, 168, 95, 0.2), transparent 48%);
+    linear-gradient(90deg, rgba(18, 11, 10, 0.74), transparent 24% 76%, rgba(18, 11, 10, 0.74)),
+    repeating-linear-gradient(90deg, rgba(255, 224, 181, 0.08) 0 1px, transparent 1px 78px),
+    radial-gradient(ellipse at 50% 12%, rgba(233, 168, 95, 0.22), transparent 50%),
+    #241712;
   transform: perspective(420px) rotateX(58deg);
   transform-origin: top;
 }
 
 .entrance-door {
   position: relative;
-  width: min(340px, 74vw);
-  height: min(540px, 72vh);
+  width: min(430px, 80vw);
+  height: min(650px, 80vh);
   border: 1px solid rgba(244, 211, 160, 0.38);
   border-radius: 14px 14px 8px 8px;
   background:
@@ -91,7 +95,7 @@ a {
   cursor: pointer;
   perspective: 980px;
   overflow: visible;
-  transform: translateY(22px) scale(0.82);
+  transform: translateY(24px) scale(0.76);
   transition: transform 0.24s ease;
 }
 
@@ -128,10 +132,10 @@ a {
   bottom: 0;
   width: 50%;
   background:
-    linear-gradient(90deg, rgba(255, 218, 164, 0.11), transparent 14% 86%, rgba(0, 0, 0, 0.22)),
-    repeating-linear-gradient(90deg, rgba(255, 225, 177, 0.04) 0 1px, transparent 1px 42px),
-    linear-gradient(180deg, rgba(126, 75, 43, 0.72), rgba(45, 25, 18, 0.98));
-  border: 1px solid rgba(218, 165, 101, 0.28);
+    linear-gradient(90deg, rgba(255, 218, 164, 0.1), transparent 14% 86%, rgba(0, 0, 0, 0.24)),
+    repeating-linear-gradient(90deg, rgba(255, 225, 177, 0.045) 0 1px, transparent 1px 42px),
+    linear-gradient(180deg, #7a4a2c, #2d1a13);
+  border: 1px solid rgba(218, 165, 101, 0.34);
   transition:
     transform 0.82s cubic-bezier(0.18, 0.82, 0.26, 1),
     opacity 0.7s ease;
@@ -150,6 +154,21 @@ a {
   transform-origin: right center;
 }
 
+.entrance-panel-right::after {
+  content: "";
+  position: absolute;
+  right: 18%;
+  top: 53%;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 34%, #ffe7b5, #b98245 42%, #5b321f 76%);
+  box-shadow:
+    0 0 0 6px rgba(68, 38, 24, 0.32),
+    0 8px 18px rgba(17, 9, 7, 0.38);
+}
+
 .entrance-room {
   position: absolute;
   inset: 16px;
@@ -161,6 +180,8 @@ a {
     rgba(115, 72, 52, 0.56);
   box-shadow: inset 0 0 90px rgba(255, 209, 144, 0.24);
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.58s;
 }
 
 .entrance-room::before {
@@ -244,75 +265,9 @@ a {
   border-radius: 999px;
   background: linear-gradient(180deg, rgba(255, 236, 198, 0.9), rgba(214, 142, 77, 0.18));
   filter: blur(8px);
-  opacity: 0.36;
+  opacity: 0;
   transform: scaleY(0.82);
   transition: 0.82s ease 0.62s;
-}
-
-.entrance-fluff {
-  position: absolute;
-  left: 50%;
-  bottom: 58px;
-  z-index: 4;
-  width: 96px;
-  height: 76px;
-  border-radius: 52% 48% 44% 56%;
-  background:
-    radial-gradient(circle at 28% 28%, #fff 0 17px, transparent 18px),
-    radial-gradient(circle at 58% 18%, #f8fdff 0 21px, transparent 22px),
-    radial-gradient(circle at 74% 42%, #edf9ff 0 19px, transparent 20px),
-    #ffffff;
-  box-shadow:
-    0 16px 28px rgba(27, 17, 14, 0.34),
-    inset -12px -12px 18px rgba(232, 203, 166, 0.42);
-  transform: translateX(-50%);
-  transition: transform 0.24s ease;
-}
-
-.entrance-fluff::before,
-.entrance-fluff::after {
-  content: "";
-  position: absolute;
-  background: #4b6576;
-  border-radius: 50%;
-}
-
-.entrance-fluff::before {
-  width: 7px;
-  height: 7px;
-  left: 34px;
-  top: 32px;
-  box-shadow: 25px 0 0 #4b6576;
-}
-
-.entrance-fluff::after {
-  width: 11px;
-  height: 7px;
-  left: 44px;
-  top: 45px;
-  background: #7aa6b9;
-}
-
-.entrance-fluff span {
-  position: absolute;
-  right: -22px;
-  top: 28px;
-  width: 38px;
-  height: 22px;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: inset -7px -6px 10px rgba(232, 203, 166, 0.38);
-  transform: rotate(-12deg);
-  transform-origin: left center;
-  transition: transform 0.24s ease;
-}
-
-.entrance-door:hover .entrance-fluff {
-  transform: translateX(-50%) translateY(-3px);
-}
-
-.entrance-door:hover .entrance-fluff span {
-  transform: rotate(-20deg) translateX(9px);
 }
 
 .entrance-screen.is-opening {
@@ -325,24 +280,24 @@ a {
 
 .entrance-screen.is-opening .entrance-panel-left {
   transition-delay: 0.58s;
-  transform: rotateY(-78deg);
-  opacity: 0.78;
+  transform: rotateY(-82deg);
+  opacity: 0.92;
 }
 
 .entrance-screen.is-opening .entrance-panel-right {
   transition-delay: 0.58s;
-  transform: rotateY(78deg);
-  opacity: 0.78;
+  transform: rotateY(82deg);
+  opacity: 0.92;
+}
+
+.entrance-screen.is-opening .entrance-room {
+  opacity: 1;
 }
 
 .entrance-screen.is-opening .entrance-light {
   inset: -8% 9%;
   opacity: 0.88;
   transform: scaleY(1.1);
-}
-
-.entrance-screen.is-opening .entrance-fluff {
-  transform: translateX(-50%) translateY(-26px) scale(1.12);
 }
 
 @keyframes entrance-fade {
@@ -362,15 +317,15 @@ a {
 
 @keyframes entrance-approach {
   0% {
-    transform: translateY(22px) scale(0.82);
+    transform: translateY(24px) scale(0.76);
   }
 
   42% {
-    transform: translateY(6px) scale(1.12);
+    transform: translateY(4px) scale(1.08);
   }
 
   100% {
-    transform: translateY(0) scale(1.28);
+    transform: translateY(0) scale(1.24);
   }
 }
 

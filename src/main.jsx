@@ -1322,7 +1322,7 @@ function App() {
             className="entrance-door"
             type="button"
             onClick={openEntranceDoor}
-            aria-label="솜뭉치가 문을 열고 입장하기"
+            aria-label="문을 열고 입장하기"
           >
             <span className="entrance-room" aria-hidden="true">
               <span className="entrance-room-window"></span>
@@ -1332,9 +1332,6 @@ function App() {
             <span className="entrance-panel entrance-panel-left"></span>
             <span className="entrance-panel entrance-panel-right"></span>
             <span className="entrance-light"></span>
-            <span className="entrance-fluff" aria-hidden="true">
-              <span></span>
-            </span>
           </button>
         </div>
       )}
