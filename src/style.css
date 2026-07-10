@@ -1294,6 +1294,7 @@ a {
 }
 
 .day {
+  position: relative;
   min-height: 82px;
   padding: 8px;
   border: 1px solid #e4f2f8;
@@ -1308,6 +1309,7 @@ button.day {
   flex-direction: column;
   align-items: flex-start;
   gap: 6px;
+  overflow: visible;
 }
 
 .day.empty {
@@ -1324,20 +1326,20 @@ button.day {
 }
 
 .day.is-range-day {
-  background: linear-gradient(90deg, #dff5ff 0%, #f7fcff 100%);
+  background: #f7fcff;
 }
 
 .day.is-range-start {
-  border-left: 4px solid #28a9ec;
+  border-left-color: #bdeeff;
 }
 
 .day.is-range-middle {
-  border-left: 0;
-  border-right: 0;
+  border-left-color: #bdeeff;
+  border-right-color: #bdeeff;
 }
 
 .day.is-range-end {
-  border-right: 4px solid #28a9ec;
+  border-right-color: #bdeeff;
 }
 
 .day.is-off {
@@ -1364,13 +1366,67 @@ button.day {
 }
 
 .schedule-preview.is-range span {
-  background: #28a9ec;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.schedule-preview.is-range {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  margin-top: 3px;
+  margin-left: 0;
+  padding: 6px 8px 5px;
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(90deg, #28a9ec, #55c8f8);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(40, 169, 236, 0.2);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.schedule-preview.is-range.continues-to-next {
+  width: calc(100% + 9px);
+}
+
+.schedule-preview.is-range.continues-from-previous {
+  width: calc(100% + 8px);
+  margin-left: -9px;
+  padding-left: 10px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.schedule-preview.is-range.continues-from-previous.continues-to-next {
+  width: calc(100% + 18px);
+  border-radius: 0;
+}
+
+.schedule-preview.is-range:not(.continues-to-next) {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+}
+
+.schedule-preview.is-range-continuation {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.schedule-preview.is-off:not(.is-range) span {
+  background: #ef5350;
   color: #fff;
 }
 
-.schedule-preview.is-off span {
-  background: #ef5350;
-  color: #fff;
+.schedule-preview.is-range.is-off {
+  background: linear-gradient(90deg, #ef5350, #ff7c7a);
+  box-shadow: 0 8px 18px rgba(239, 83, 80, 0.18);
 }
 
 .schedule-preview small,
@@ -1379,6 +1435,18 @@ button.day {
   font-size: 11px;
   font-style: normal;
   font-weight: 900;
+}
+
+.schedule-preview.is-range small,
+.schedule-preview.is-range em {
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-preview.is-range em {
+  min-width: 0;
 }
 
 .community-grid {

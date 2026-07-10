@@ -438,6 +438,24 @@ function formatShortDateKey(dateKey) {
   return date ? `${date.getMonth() + 1}/${date.getDate()}` : "";
 }
 
+function getPreviousDateKey(dateKey) {
+  const date = parseDateKey(dateKey);
+  if (!date) return "";
+
+  date.setDate(date.getDate() - 1);
+
+  return getDateKey(date);
+}
+
+function getNextDateKey(dateKey) {
+  const date = parseDateKey(dateKey);
+  if (!date) return "";
+
+  date.setDate(date.getDate() + 1);
+
+  return getDateKey(date);
+}
+
 function formatKoreanDate(date) {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
 }
@@ -821,38 +839,93 @@ function App() {
     }
   };
 
-  const renderSchedule = (dateKey) => {
+  const getRangeSegmentInfo = (dateKey) => {
     const schedule = schedules[dateKey];
+    if (!schedule) {
+      return {
+        schedule: null,
+        isRange: false,
+        continuesFromPrevious: false,
+        continuesToNext: false,
+        showRangeText: false,
+      };
+    }
+
+    const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
+    const currentDate = parseDateKey(dateKey);
+    const previousDateKey = getPreviousDateKey(dateKey);
+    const nextDateKey = getNextDateKey(dateKey);
+    const previousDate = parseDateKey(previousDateKey);
+    const nextDate = parseDateKey(nextDateKey);
+    const previousSchedule = schedules[previousDateKey];
+    const nextSchedule = schedules[nextDateKey];
+    const dataContinuesFromPrevious =
+      isRange && previousSchedule?.groupId && previousSchedule.groupId === schedule.groupId;
+    const dataContinuesToNext = isRange && nextSchedule?.groupId && nextSchedule.groupId === schedule.groupId;
+    const isCurrentMonthPreviousDate =
+      previousDate &&
+      previousDate.getFullYear() === monthDate.getFullYear() &&
+      previousDate.getMonth() === monthDate.getMonth();
+    const isCurrentMonthNextDate =
+      nextDate &&
+      nextDate.getFullYear() === monthDate.getFullYear() &&
+      nextDate.getMonth() === monthDate.getMonth();
+    const continuesFromPrevious =
+      dataContinuesFromPrevious && isCurrentMonthPreviousDate && currentDate?.getDay() !== 0;
+    const continuesToNext =
+      dataContinuesToNext && isCurrentMonthNextDate && currentDate?.getDay() !== 6;
+
+    return {
+      schedule,
+      isRange,
+      continuesFromPrevious,
+      continuesToNext,
+      showRangeText: !isRange || !continuesFromPrevious,
+    };
+  };
+
+  const renderSchedule = (dateKey) => {
+    const { schedule, isRange, continuesFromPrevious, continuesToNext, showRangeText } = getRangeSegmentInfo(dateKey);
 
     if (!schedule) return null;
 
-    const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
     const rangeLabel = isRange ? `${formatShortDateKey(schedule.rangeStart)} - ${formatShortDateKey(schedule.rangeEnd)}` : "";
+    const scheduleClassName = [
+      "schedule-preview",
+      isRange ? "is-range" : "",
+      continuesFromPrevious ? "continues-from-previous" : "",
+      continuesToNext ? "continues-to-next" : "",
+      !showRangeText ? "is-range-continuation" : "",
+      schedule.type === "휴방" ? "is-off" : "",
+    ].filter(Boolean).join(" ");
 
     return (
-      <span className={`schedule-preview ${isRange ? "is-range" : ""} ${schedule.type === "휴방" ? "is-off" : ""}`}>
-        <span>{schedule.type}</span>
-        {rangeLabel && <small>{rangeLabel}</small>}
-        {schedule.startTime && <small>{schedule.startTime}</small>}
-        {schedule.memo && <em>{schedule.memo}</em>}
+      <span className={scheduleClassName}>
+        {showRangeText && (
+          <>
+            <span>{schedule.type}</span>
+            {rangeLabel && <small>{rangeLabel}</small>}
+            {schedule.startTime && <small>{schedule.startTime}</small>}
+            {schedule.memo && <em>{schedule.memo}</em>}
+          </>
+        )}
       </span>
     );
   };
 
   const getScheduleStateClass = (dateKey) => {
-    const schedule = schedules[dateKey];
+    const { schedule, isRange, continuesFromPrevious, continuesToNext } = getRangeSegmentInfo(dateKey);
     if (!schedule) return "";
 
     const classes = [];
-    const isRange = schedule.rangeStart && schedule.rangeEnd && schedule.rangeStart !== schedule.rangeEnd;
 
     if (schedule.type === "휴방") classes.push("is-off");
 
     if (isRange) {
       classes.push("is-range-day");
-      if (dateKey === schedule.rangeStart) classes.push("is-range-start");
-      else if (dateKey === schedule.rangeEnd) classes.push("is-range-end");
-      else classes.push("is-range-middle");
+      if (!continuesFromPrevious) classes.push("is-range-start");
+      if (!continuesToNext) classes.push("is-range-end");
+      if (continuesFromPrevious && continuesToNext) classes.push("is-range-middle");
     }
 
     return classes.join(" ");
