@@ -26,30 +26,6 @@ const VOD_DISPLAY_LIMIT = 5;
 const UPBO_PAGE_ID = "upbo";
 const UPBO_ROUTE = "/upbo";
 
-const MENU_ITEMS = [
-  { id: "home", label: "HOME" },
-  { id: "about", label: "ABOUT" },
-  { id: "schedule", label: "SCHEDULE" },
-  { id: "notice", label: "NOTICE" },
-  { id: "clips", label: "HIGHLIGHTS" },
-  { id: "hotclips", label: "HOT CLIPS" },
-  { id: "gallery", label: "GALLERY" },
-  { id: "contact", label: "COMMUNITY" },
-  { id: UPBO_PAGE_ID, label: "시트지", route: UPBO_ROUTE },
-];
-
-const MENU_DESCRIPTIONS = {
-  home: "홈",
-  about: "비숑 소개",
-  notice: "최근 공지",
-  clips: "하이라이트",
-  hotclips: "핫클립",
-  gallery: "갤러리",
-  schedule: "방송 일정",
-  contact: "커뮤니티",
-  upbo: "시트지",
-};
-
 const PROFILE_ITEMS = [
   ["이름", "비숑"],
   ["나이", "2000.06.18"],
@@ -93,7 +69,7 @@ const APP_RAIL_ITEMS = [
 ];
 
 const MOBILE_APP_ITEMS = APP_RAIL_ITEMS.filter((item) =>
-  ["home", "schedule", "clips", "gallery"].includes(item.id)
+  ["home", "schedule", "clips", "hotclips", "gallery"].includes(item.id)
 );
 
 const HOTCLIP_CATEGORIES = [
@@ -572,7 +548,6 @@ function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [monthDate, setMonthDate] = useState(today);
   const [schedules, setSchedules] = useState({});
   const [editingDate, setEditingDate] = useState(null);
@@ -785,7 +760,6 @@ function App() {
         route === FANART_ROUTE ? "gallery" :
           route === HOTCLIP_ROUTE ? "hotclips" : "upbo"
       );
-      setMenuOpen(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
@@ -800,13 +774,11 @@ function App() {
         window.setTimeout(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 0);
-        setMenuOpen(false);
       });
       return;
     }
 
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setMenuOpen(false);
   };
 
   const moveMonth = (value) => {
@@ -1215,8 +1187,6 @@ function App() {
       if (activePage !== getPageFromPath(item.route)) {
         openInternalPage(item.route);
       }
-
-      setMenuOpen(false);
       return;
     }
 
@@ -1262,59 +1232,6 @@ function App() {
         </a>
       </aside>
 
-      <header className="top-bar">
-        <div className="top-bar-actions">
-          <button
-            className={`hamburger ${menuOpen ? "open" : ""}`}
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
-      </header>
-
-      {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
-
-      <aside className={`side-menu ${menuOpen ? "show" : ""}`}>
-        <button className="menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
-          ×
-        </button>
-        <div className="side-menu-brand">
-          <strong>BICHON</strong>
-          <small>STATION MENU</small>
-        </div>
-        <nav>
-          {MENU_ITEMS.map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              onClick={() => {
-                if (item.route) {
-                  setActiveAppSection("upbo");
-                  openInternalPage(item.route);
-                  return;
-                }
-
-                jumpToSection(item.id);
-              }}
-            >
-              <span>{item.label}</span>
-              <small>{MENU_DESCRIPTIONS[item.id]}</small>
-            </button>
-          ))}
-        </nav>
-        <div className="menu-socials">
-          <a href={LINKS.soop} target="_blank" rel="noreferrer">SOOP</a>
-          <a href={LINKS.cafe} target="_blank" rel="noreferrer">CAFE</a>
-          <a href={LINKS.youtube} target="_blank" rel="noreferrer">YT</a>
-          <a href={LINKS.fansim} target="_blank" rel="noreferrer">M</a>
-        </div>
-      </aside>
-
       <nav className="mobile-tab-bar" aria-label="모바일 빠른 메뉴">
         {MOBILE_APP_ITEMS.map((item) => (
           <button
@@ -1328,10 +1245,6 @@ function App() {
             <small>{item.label}</small>
           </button>
         ))}
-        <button type="button" onClick={() => setMenuOpen(true)} aria-label="더보기 메뉴 열기">
-          <span aria-hidden="true">⋮</span>
-          <small>더보기</small>
-        </button>
       </nav>
     </>
   );

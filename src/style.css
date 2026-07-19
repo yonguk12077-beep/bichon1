@@ -1931,7 +1931,7 @@ button.day {
 .app-shell {
   position: relative;
   min-height: 100dvh;
-  padding: 88px 28px 34px 106px;
+  padding: 34px 28px 34px 106px;
   background:
     radial-gradient(circle at 16% 8%, rgba(116, 208, 246, 0.26), transparent 24rem),
     linear-gradient(135deg, #eef9ff 0%, #f9fdff 46%, #e6f6ff 100%);
@@ -2117,7 +2117,7 @@ button.day {
 
 .site-frame {
   width: min(1320px, 100%);
-  min-height: calc(100dvh - 122px);
+  min-height: calc(100dvh - 68px);
   border: 1px solid rgba(184, 226, 244, 0.88);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.84);
@@ -2279,7 +2279,7 @@ button.day {
 
 @media (max-width: 980px) {
   .app-shell {
-    padding: 80px 18px 86px;
+    padding: 24px 18px 86px;
   }
 
   .app-rail {
@@ -2292,7 +2292,7 @@ button.day {
   }
 
   .site-frame {
-    min-height: calc(100dvh - 166px);
+    min-height: calc(100dvh - 110px);
   }
 
   .hero-section {
@@ -2365,7 +2365,7 @@ button.day {
 
 @media (max-width: 680px) {
   .app-shell {
-    padding: 74px 0 82px;
+    padding: 0 0 82px;
   }
 
   .top-bar {
@@ -2387,7 +2387,7 @@ button.day {
 
   .site-frame {
     width: 100%;
-    min-height: calc(100dvh - 156px);
+    min-height: calc(100dvh - 82px);
     border-right: 0;
     border-left: 0;
     border-radius: 0;
