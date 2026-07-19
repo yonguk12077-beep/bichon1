@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/soop-api': {
-        target: 'https://bjapi.sooplive.co.kr',
+        target: 'https://bjapi.afreecatv.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/soop-api/, ''),
       },

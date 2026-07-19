@@ -9,6 +9,7 @@ import "./style.css";
 
 const LINKS = {
   soop: "https://www.sooplive.com/station/merryou",
+  live: "https://play.sooplive.com/merryou",
   cafe: "https://cafe.naver.com/bichonb",
   youtube: "https://www.youtube.com/@qltydb",
   fansim: "https://fancimm.com/celebrity/181982",
@@ -25,6 +26,12 @@ const DEFAULT_LATEST_VOD_THUMBNAIL =
 const VOD_DISPLAY_LIMIT = 5;
 const UPBO_PAGE_ID = "upbo";
 const UPBO_ROUTE = "/upbo";
+const SCHEDULE_PAGE_ID = "schedule";
+const SCHEDULE_ROUTE = "/schedule";
+const NOTICE_PAGE_ID = "notices";
+const NOTICE_ROUTE = "/notices";
+const VOD_PAGE_ID = "vod";
+const VOD_ROUTE = "/vod";
 
 const PROFILE_ITEMS = [
   ["이름", "비숑"],
@@ -52,6 +59,9 @@ const HOTCLIP_ROUTE = "/hotclips";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
 
 const INTERNAL_ROUTES = {
+  [SCHEDULE_ROUTE]: SCHEDULE_PAGE_ID,
+  [NOTICE_ROUTE]: NOTICE_PAGE_ID,
+  [VOD_ROUTE]: VOD_PAGE_ID,
   [FANART_ROUTE]: FANART_GALLERY_ID,
   [HOTCLIP_ROUTE]: HOTCLIP_PAGE_ID,
   [UPBO_ROUTE]: UPBO_PAGE_ID,
@@ -60,9 +70,9 @@ const INTERNAL_ROUTES = {
 const APP_RAIL_ITEMS = [
   { id: "home", label: "홈", icon: "⌂", sectionId: "home" },
   { id: "about", label: "소개", icon: "◎", sectionId: "about" },
-  { id: "schedule", label: "일정", icon: "▦", sectionId: "schedule" },
-  { id: "notice", label: "공지", icon: "!", sectionId: "notice" },
-  { id: "clips", label: "다시보기", icon: "▷", sectionId: "clips" },
+  { id: "schedule", label: "일정", icon: "▦", route: SCHEDULE_ROUTE },
+  { id: "notice", label: "공지", icon: "!", route: NOTICE_ROUTE },
+  { id: "clips", label: "다시보기", icon: "▷", route: VOD_ROUTE },
   { id: "hotclips", label: "핫클립", icon: "✦", route: HOTCLIP_ROUTE },
   { id: "gallery", label: "팬아트", icon: "▧", route: FANART_ROUTE },
   { id: "upbo", label: "시트지", icon: "▤", route: UPBO_ROUTE },
@@ -85,10 +95,10 @@ const DEFAULT_HOTCLIP_DRAFT = {
 };
 
 const COMMUNITY_LINKS = [
-  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop },
-  { title: "YOUTUBE", text: "다시보기 채널", href: LINKS.youtube },
-  { title: "FAN CAFE", text: "팬카페 바로가기", href: LINKS.cafe },
-  { title: "FANSIM", text: "팬심M", href: LINKS.fansim },
+  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop, mark: "S", tone: "soop" },
+  { title: "YouTube", text: "비숑 유튜브", href: LINKS.youtube, mark: "Y", tone: "youtube" },
+  { title: "비숑 네이버 카페", text: "솜뭉치 팬카페", href: LINKS.cafe, mark: "N", tone: "cafe" },
+  { title: "팬심M", text: "마음을 전하는 공간", href: LINKS.fansim, mark: "F", tone: "fansim" },
 ];
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -103,8 +113,10 @@ const DEFAULT_SCHEDULE = {
 };
 const CLIPS_STORAGE_KEY = "bichon-user-clips-v1";
 
+const SOOP_NOTICE_BOARD_NO = 82048012;
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
-const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?bbsNo=82048012&perPage=20&page=1";
+const SOOP_NOTICE_API_URL = "/soop-channel/v1.1/channel/merryou/board?nPageNo=1&nListCnt=30";
+const SOOP_STATION_API_URL = "/soop-api/api/merryou/station";
 const SOOP_VOD_API_URLS = [
   "/soop-sch/api.php?l=DF&m=vodSearch&w=webk&isMobile=0&szType=json&c=UTF-8&v=5.0&szKeyword=merryou&nPageNo=1&nListCnt=5&tab=vod&location=total_search&szOrder=reg_date&szFileType=REVIEW&szTerm=all",
   "/soop-sch/api.php?l=DF&m=vodSearch&w=webk&isMobile=0&szType=json&c=UTF-8&v=5.0&szKeyword=merryou&nPageNo=1&nListCnt=5&tab=vod&location=total_search&szOrder=reg_date&szFileType=ALL&szTerm=all",
@@ -115,6 +127,7 @@ const SOOP_VOD_API_URLS = [
 const SOOP_STATION_VOD_URL = "/soop-station/station/merryou/vod";
 const NOTICE_REFRESH_MS = 5 * 60 * 1000;
 const VOD_REFRESH_MS = 60 * 1000;
+const LIVE_REFRESH_MS = 60 * 1000;
 const FALLBACK_NOTICE = {
   id: "fallback-notice-200299679",
   title: "07.02▽・ω・▽",
@@ -132,6 +145,14 @@ const FALLBACK_VODS = [{
   badge: "최신 VOD",
 }];
 
+const OFFLINE_BROADCAST = {
+  isLive: false,
+  title: "",
+  href: LINKS.live,
+  thumbnail: "",
+  viewers: 0,
+};
+
 function htmlToPlainText(html) {
   if (!html) return "";
 
@@ -143,10 +164,7 @@ function htmlToPlainText(html) {
   return blocks.length ? blocks.join("\n") : document.body.textContent.trim();
 }
 
-function normalizeSoopNotice(data) {
-  const source = data?.contents || data?.data?.contents || data?.data?.list || data?.list || [];
-  const item = Array.isArray(source) ? source[0] : source;
-
+function normalizeSoopNoticeItem(item) {
   if (!item || typeof item !== "object") return null;
 
   return {
@@ -164,14 +182,48 @@ function normalizeSoopNotice(data) {
   };
 }
 
-async function requestLatestSoopNotice() {
+function normalizeSoopNotices(data) {
+  const source = data?.contents || data?.data?.contents || data?.data?.list || data?.list || [];
+  const items = Array.isArray(source) ? source : [source];
+
+  return items
+    .filter((item) => Number(item?.bbsNo || item?.bbs_no) === SOOP_NOTICE_BOARD_NO)
+    .map(normalizeSoopNoticeItem)
+    .filter(Boolean);
+}
+
+async function requestSoopNotices() {
   const response = await fetch(SOOP_NOTICE_API_URL, {
     headers: { accept: "application/json" },
   });
 
   if (!response.ok) throw new Error("SOOP notice request failed");
 
-  return normalizeSoopNotice(await response.json());
+  return normalizeSoopNotices(await response.json());
+}
+
+function normalizeSoopBroadcast(data) {
+  const broad = data?.broad;
+
+  if (!broad?.broad_no) return OFFLINE_BROADCAST;
+
+  return {
+    isLive: true,
+    title: broad.broad_title || "비숑 LIVE",
+    href: `${LINKS.live}/${broad.broad_no}`,
+    thumbnail: `https://liveimg.sooplive.co.kr/m/${broad.broad_no}`,
+    viewers: Number(broad.current_sum_viewer) || 0,
+  };
+}
+
+async function requestSoopBroadcast() {
+  const response = await fetch(SOOP_STATION_API_URL, {
+    headers: { accept: "application/json" },
+  });
+
+  if (!response.ok) throw new Error("SOOP station request failed");
+
+  return normalizeSoopBroadcast(await response.json());
 }
 
 function createEmptyGallery() {
@@ -400,6 +452,17 @@ function getPageFromPath(pathname) {
   return INTERNAL_ROUTES[pathname] || "index";
 }
 
+function getAppSectionFromPage(page) {
+  if (page === SCHEDULE_PAGE_ID) return "schedule";
+  if (page === NOTICE_PAGE_ID) return "notice";
+  if (page === VOD_PAGE_ID) return "clips";
+  if (page === FANART_GALLERY_ID) return "gallery";
+  if (page === HOTCLIP_PAGE_ID) return "hotclips";
+  if (page === UPBO_PAGE_ID) return "upbo";
+
+  return "home";
+}
+
 function parseDateKey(dateKey) {
   if (!dateKey) return null;
 
@@ -553,18 +616,14 @@ function App() {
   const [editingDate, setEditingDate] = useState(null);
   const [scheduleDraft, setScheduleDraft] = useState(DEFAULT_SCHEDULE);
   const [latestNotice, setLatestNotice] = useState(FALLBACK_NOTICE);
+  const [notices, setNotices] = useState([FALLBACK_NOTICE]);
+  const [expandedNoticeId, setExpandedNoticeId] = useState(null);
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [noticeStatus, setNoticeStatus] = useState("loading");
   const [activePage, setActivePage] = useState(() => getPageFromPath(window.location.pathname));
-  const [activeAppSection, setActiveAppSection] = useState(() => {
-    const page = getPageFromPath(window.location.pathname);
-
-    if (page === FANART_GALLERY_ID) return "gallery";
-    if (page === HOTCLIP_PAGE_ID) return "hotclips";
-    if (page === UPBO_PAGE_ID) return "upbo";
-
-    return "home";
-  });
+  const [activeAppSection, setActiveAppSection] = useState(() =>
+    getAppSectionFromPage(getPageFromPath(window.location.pathname))
+  );
   const [galleryItems, setGalleryItems] = useState(() => createEmptyGallery());
   const [clipComposerOpen, setClipComposerOpen] = useState(false);
   const [clipDraftUrl, setClipDraftUrl] = useState("");
@@ -579,6 +638,8 @@ function App() {
   const [upboFiles, setUpboFiles] = useState([]);
   const [upboStatus, setUpboStatus] = useState("loading");
   const [fanpageStatus, setFanpageStatus] = useState("loading");
+  const [liveBroadcast, setLiveBroadcast] = useState(OFFLINE_BROADCAST);
+  const [liveStatus, setLiveStatus] = useState("loading");
   const [pageLoading, setPageLoading] = useState(false);
   const pageLoadingTimerRef = useRef(null);
 
@@ -590,6 +651,23 @@ function App() {
     .map((item) => ({ ...item, variant: "" }));
   const vodCards = latestVods.length ? latestVods : FALLBACK_VODS;
   const clipCards = [...vodCards, ...userClips, ...DEFAULT_CLIPS];
+  const latestVod = vodCards[0];
+  const latestHotclip = hotclips[0] || null;
+  const upcomingSchedules = (() => {
+    const seenGroups = new Set();
+
+    return Object.entries(schedules)
+      .filter(([dateKey]) => dateKey >= todayKey)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .filter(([, schedule]) => {
+        const groupKey = schedule.groupId || `${schedule.type}-${schedule.memo}`;
+        if (seenGroups.has(groupKey)) return false;
+        seenGroups.add(groupKey);
+        return true;
+      })
+      .slice(0, 3)
+      .map(([dateKey, schedule]) => ({ dateKey, schedule }));
+  })();
   const hotclipPreviewGroups = HOTCLIP_CATEGORIES.map((category) => ({
     category,
     clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
@@ -613,14 +691,17 @@ function App() {
     const loadSoopNotices = async () => {
       try {
         setNoticeStatus("loading");
-        const notice = await requestLatestSoopNotice();
+        const nextNotices = await requestSoopNotices();
 
         if (!alive) return;
 
-        setLatestNotice(notice || FALLBACK_NOTICE);
-        setNoticeStatus(notice ? "ready" : "empty");
+        const resolvedNotices = nextNotices.length ? nextNotices : [FALLBACK_NOTICE];
+        setNotices(resolvedNotices);
+        setLatestNotice(resolvedNotices[0]);
+        setNoticeStatus(nextNotices.length ? "ready" : "empty");
       } catch {
         if (!alive) return;
+        setNotices([FALLBACK_NOTICE]);
         setLatestNotice(FALLBACK_NOTICE);
         setNoticeStatus("error");
       }
@@ -654,15 +735,38 @@ function App() {
   }, [loadLatestVod]);
 
   useEffect(() => {
+    let alive = true;
+
+    const loadLiveBroadcast = async () => {
+      try {
+        const broadcast = await requestSoopBroadcast();
+
+        if (!alive) return;
+
+        setLiveBroadcast(broadcast);
+        setLiveStatus("ready");
+      } catch {
+        if (!alive) return;
+        setLiveBroadcast(OFFLINE_BROADCAST);
+        setLiveStatus("error");
+      }
+    };
+
+    loadLiveBroadcast();
+    const timer = window.setInterval(loadLiveBroadcast, LIVE_REFRESH_MS);
+
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
     const syncInternalRoute = () => {
       const nextPage = getPageFromPath(window.location.pathname);
 
       setActivePage(nextPage);
-      setActiveAppSection(
-        nextPage === FANART_GALLERY_ID ? "gallery" :
-          nextPage === HOTCLIP_PAGE_ID ? "hotclips" :
-            nextPage === UPBO_PAGE_ID ? "upbo" : "home"
-      );
+      setActiveAppSection(getAppSectionFromPage(nextPage));
     };
 
     window.addEventListener("popstate", syncInternalRoute);
@@ -755,11 +859,9 @@ function App() {
   const openInternalPage = (route) => {
     startPageTransition(() => {
       window.history.pushState({}, "", route);
-      setActivePage(getPageFromPath(route));
-      setActiveAppSection(
-        route === FANART_ROUTE ? "gallery" :
-          route === HOTCLIP_ROUTE ? "hotclips" : "upbo"
-      );
+      const nextPage = getPageFromPath(route);
+      setActivePage(nextPage);
+      setActiveAppSection(getAppSectionFromPage(nextPage));
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
@@ -943,7 +1045,7 @@ function App() {
     openInternalPage(HOTCLIP_ROUTE);
   };
 
-  const closeUpboPage = () => {
+  const closeInternalPage = () => {
     startPageTransition(() => {
       window.history.pushState({}, "", "/");
       setActivePage("index");
@@ -952,27 +1054,9 @@ function App() {
     });
   };
 
-  const closeHotclipPage = () => {
-    startPageTransition(() => {
-      window.history.pushState({}, "", "/");
-      setActivePage("index");
-      setActiveAppSection("hotclips");
-      window.setTimeout(() => {
-        document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
-    });
-  };
-
-  const closeGalleryPage = () => {
-    startPageTransition(() => {
-      window.history.pushState({}, "", "/");
-      setActivePage("index");
-      setActiveAppSection("gallery");
-      window.setTimeout(() => {
-        document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 0);
-    });
-  };
+  const closeUpboPage = closeInternalPage;
+  const closeHotclipPage = closeInternalPage;
+  const closeGalleryPage = closeInternalPage;
 
   const addGalleryFiles = async (event, categoryId) => {
     const input = event.currentTarget;
@@ -1267,6 +1351,280 @@ function App() {
     </div>
   );
 
+  const clipComposerModal = clipComposerOpen && (
+    <div
+      className="modal-backdrop"
+      onClick={() => {
+        setClipComposerOpen(false);
+        setClipError("");
+      }}
+    >
+      <form className="clip-modal" onSubmit={addClipLink} onClick={(event) => event.stopPropagation()}>
+        <button
+          className="modal-close"
+          type="button"
+          onClick={() => {
+            setClipComposerOpen(false);
+            setClipError("");
+          }}
+          aria-label="닫기"
+        >
+          ×
+        </button>
+
+        <h2>영상 링크 추가</h2>
+        <p>유튜브 링크는 카드 안에 미리보기로 표시되고, SOOP 다시보기 링크는 바로가기 카드로 추가됩니다.</p>
+
+        <label>
+          영상 링크
+          <input
+            value={clipDraftUrl}
+            onChange={(event) => {
+              setClipDraftUrl(event.target.value);
+              setClipError("");
+            }}
+            placeholder="https://..."
+            autoFocus
+          />
+        </label>
+
+        {clipError && <strong className="form-error">{clipError}</strong>}
+
+        <button className="save-button" type="submit">
+          추가하기
+        </button>
+      </form>
+    </div>
+  );
+
+  const scheduleEditorModal = editingDate && (
+    <div className="modal-backdrop" onClick={closeScheduleEditor}>
+      <form className="schedule-modal" onSubmit={saveSchedule} onClick={(event) => event.stopPropagation()}>
+        <button className="modal-close" type="button" onClick={closeScheduleEditor} aria-label="닫기">
+          ×
+        </button>
+
+        <h2>{formatKoreanDate(editingDate.date)} 일정 수정</h2>
+
+        <label>
+          방송 구분
+          <select value={scheduleDraft.type} onChange={(event) => updateDraft("type", event.target.value)}>
+            {BROADCAST_TYPES.map((type) => (
+              <option value={type} key={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          방송 시작 시간
+          <input
+            value={scheduleDraft.startTime}
+            onChange={(event) => updateDraft("startTime", event.target.value)}
+            placeholder="예: 오후 8시"
+          />
+        </label>
+
+        <label>
+          방송 내용 / 비고
+          <input
+            value={scheduleDraft.memo}
+            onChange={(event) => updateDraft("memo", event.target.value)}
+            placeholder="예: 마크 하코 대결"
+          />
+        </label>
+
+        <div className="schedule-range-fields">
+          <label>
+            장기 컨텐츠 시작일
+            <input
+              type="date"
+              value={scheduleDraft.rangeStart}
+              onChange={(event) => updateDraft("rangeStart", event.target.value)}
+            />
+          </label>
+          <label>
+            장기 컨텐츠 종료일
+            <input
+              type="date"
+              value={scheduleDraft.rangeEnd}
+              min={scheduleDraft.rangeStart || editingDate.key}
+              onChange={(event) => updateDraft("rangeEnd", event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="modal-actions">
+          <button className="delete-button" type="button" onClick={deleteSchedule}>
+            삭제하기
+          </button>
+          <button className="save-button" type="submit">
+            저장하기
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+
+  if (activePage === SCHEDULE_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        {appChrome}
+        <main className="site-frame content-page-frame">
+          <section className="page-section schedule-route-section">
+            <button className="gallery-back-button" type="button" onClick={closeInternalPage}>
+              ← 홈으로 돌아가기
+            </button>
+
+            <div className="route-page-heading">
+              <SectionTitle number="01" title="방송 일정" eyebrow="SCHEDULE" />
+              <p>날짜를 누르면 일정을 추가하거나 수정할 수 있어요. 휴방 일정은 빨간색으로 표시됩니다.</p>
+            </div>
+
+            {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
+            {fanpageStatus === "offline" && (
+              <small className="fanpage-status fanpage-status-offline">
+                공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
+              </small>
+            )}
+
+            <section className="schedule-card schedule-route-calendar">
+              <div className="calendar-control">
+                <button type="button" onClick={() => moveMonth(-1)} aria-label="이전 달">‹</button>
+                <span>{monthDate.getFullYear()}년 {monthDate.getMonth() + 1}월</span>
+                <button type="button" onClick={() => moveMonth(1)} aria-label="다음 달">›</button>
+              </div>
+              <div className="calendar-head">
+                {WEEKDAYS.map((day) => (
+                  <span key={day}>{day}</span>
+                ))}
+              </div>
+              <div className="calendar-grid">
+                {monthDays.map((item, index) =>
+                  item ? (
+                    <button
+                      className={`day ${item.key === todayKey ? "today" : ""} ${getScheduleStateClass(item.key)}`}
+                      type="button"
+                      key={item.key}
+                      onClick={() => openScheduleEditor(item.date)}
+                    >
+                      <b>{item.day}</b>
+                      {renderSchedule(item.key)}
+                    </button>
+                  ) : (
+                    <div className="day empty" key={`empty-${index}`} />
+                  )
+                )}
+              </div>
+            </section>
+          </section>
+        </main>
+        {scheduleEditorModal}
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
+
+  if (activePage === NOTICE_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        {appChrome}
+        <main className="site-frame content-page-frame">
+          <section className="page-section notices-route-section">
+            <button className="gallery-back-button" type="button" onClick={closeInternalPage}>
+              ← 홈으로 돌아가기
+            </button>
+
+            <div className="route-page-heading">
+              <SectionTitle number="02" title="방송 공지" eyebrow="NOTICE" />
+              <p>비숑의 SOOP 방송 공지를 최신순으로 모아볼 수 있어요.</p>
+            </div>
+
+            {noticeStatus === "loading" && <small className="fanpage-status">공지 불러오는 중</small>}
+
+            <div className="notice-route-list">
+              {notices.map((notice) => {
+                const isExpanded = expandedNoticeId === notice.id;
+
+                return (
+                  <article className={`notice-route-card ${isExpanded ? "is-open" : ""}`} key={notice.id}>
+                    <button
+                      className="notice-route-summary"
+                      type="button"
+                      onClick={() => setExpandedNoticeId(isExpanded ? null : notice.id)}
+                      aria-expanded={isExpanded}
+                    >
+                      <span>
+                        <small>{notice.date}</small>
+                        <strong>{notice.title}</strong>
+                      </span>
+                      <b aria-hidden="true">{isExpanded ? "−" : "+"}</b>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="notice-route-detail">
+                        <p>{notice.body}</p>
+                        <a href={notice.url} target="_blank" rel="noreferrer">
+                          SOOP 원문 보기
+                        </a>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        </main>
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
+
+  if (activePage === VOD_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        {appChrome}
+        <main className="site-frame content-page-frame">
+          <section className="page-section vod-route-section">
+            <button className="gallery-back-button" type="button" onClick={closeInternalPage}>
+              ← 홈으로 돌아가기
+            </button>
+
+            <div className="section-row route-page-heading-row">
+              <SectionTitle number="03" title="비숑 VOD" eyebrow="LATEST UPLOADS" />
+              <div className="clip-actions">
+                <button className="vod-refresh-button" type="button" onClick={loadLatestVod}>
+                  {vodStatus === "loading" ? "다시보기 확인 중" : "최신 다시보기 새로고침"}
+                </button>
+                <button className="clip-add-button" type="button" onClick={() => setClipComposerOpen(true)}>
+                  영상 추가
+                </button>
+              </div>
+            </div>
+
+            <div className="clip-grid vod-route-grid">
+              {clipCards.map((clip) => (
+                <a className="clip-card" href={clip.href} target="_blank" rel="noreferrer" key={clip.id || clip.title}>
+                  <span>{clip.badge}</span>
+                  {clip.embedUrl ? (
+                    <iframe src={clip.embedUrl} title={clip.title} allowFullScreen />
+                  ) : (
+                    <img src={clip.thumbnail || HERO_IMAGE_URL} alt="" />
+                  )}
+                  <strong>{clip.title}</strong>
+                  {clip.text && <p>{clip.text}</p>}
+                </a>
+              ))}
+            </div>
+          </section>
+        </main>
+        {clipComposerModal}
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
+
   if (activePage === UPBO_PAGE_ID) {
     return (
       <div className="app-shell">
@@ -1454,6 +1812,179 @@ function App() {
             </div>
           </section>
         </main>
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
+
+  if (activePage === "index") {
+    return (
+      <div className="app-shell">
+        {appChrome}
+
+        <main className="site-frame home-dashboard-frame">
+          <section className={`home-hero ${liveBroadcast.isLive ? "is-live" : ""}`} id="home">
+            <div className={`home-hero-profile ${liveBroadcast.isLive ? "is-live" : ""}`}>
+              {liveBroadcast.isLive && <span>LIVE</span>}
+              <img src={HERO_IMAGE_URL} alt="비숑 프로필" />
+            </div>
+
+            <div className="home-hero-copy">
+              <small>BICHON FAN STATION</small>
+              <h1>비숑과 솜뭉치의 공간</h1>
+              <p>방송 일정과 공지, 다시보기와 팬 콘텐츠를 한곳에서 만나보세요.</p>
+              <div className="home-hero-meta">
+                <span>VIRTUAL STREAMER</span>
+                <span>FANDOM · 솜뭉치</span>
+                <span>DEBUT · 2024.04.12</span>
+              </div>
+            </div>
+
+            {liveBroadcast.isLive && (
+              <a className="home-live-strip" href={liveBroadcast.href} target="_blank" rel="noreferrer">
+                <img src={liveBroadcast.thumbnail} alt={`${liveBroadcast.title} 방송 썸네일`} />
+                <span className="home-live-copy">
+                  <small>NOW STREAMING</small>
+                  <strong>{liveBroadcast.title}</strong>
+                  <em>{liveBroadcast.viewers.toLocaleString()}명 시청 중</em>
+                </span>
+                <b>방송 보기</b>
+              </a>
+            )}
+
+            {!liveBroadcast.isLive && liveStatus === "loading" && (
+              <span className="home-live-check">방송 상태 확인 중</span>
+            )}
+          </section>
+
+          <section className="home-dashboard" aria-label="비숑 팬페이지 바로가기와 최신 소식">
+            <div className="home-link-panel">
+              <div className="home-panel-heading">
+                <span>QUICK LINKS</span>
+                <h2>바로가기</h2>
+              </div>
+
+              <div className="home-quick-link-list">
+                {COMMUNITY_LINKS.map((link) => (
+                  <a
+                    className={`home-quick-link is-${link.tone}`}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    key={link.title}
+                  >
+                    <span aria-hidden="true">{link.mark}</span>
+                    <strong>
+                      {link.title}
+                      <small>{link.text}</small>
+                    </strong>
+                    <b aria-hidden="true">↗</b>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            <div className="home-feed-grid">
+              <button
+                className="home-summary-card home-notice-card"
+                type="button"
+                onClick={() => openInternalPage(NOTICE_ROUTE)}
+              >
+                <span className="home-card-label">최신 공지</span>
+                <strong>{noticeStatus === "loading" ? "새 공지를 확인하고 있어요" : latestNotice.title}</strong>
+                <b aria-hidden="true">→</b>
+              </button>
+
+              <button
+                className="home-summary-card home-schedule-card"
+                type="button"
+                onClick={() => openInternalPage(SCHEDULE_ROUTE)}
+              >
+                <span className="home-card-label">일정</span>
+                <strong>방송 캘린더</strong>
+                <div className="home-schedule-preview">
+                  {upcomingSchedules.length ? (
+                    upcomingSchedules.map(({ dateKey, schedule }) => (
+                      <span className={schedule.type === "휴방" ? "is-off" : ""} key={schedule.groupId || dateKey}>
+                        <b>{formatShortDateKey(dateKey)}</b>
+                        <em>{schedule.memo || schedule.type}</em>
+                      </span>
+                    ))
+                  ) : (
+                    <span>
+                      <em>등록된 다음 일정이 없습니다.</em>
+                    </span>
+                  )}
+                </div>
+              </button>
+
+              <a
+                className="home-media-card home-vod-card"
+                href={latestVod.href}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img src={latestVod.thumbnail || HERO_IMAGE_URL} alt="" />
+                <span>
+                  <small>최신 업로드</small>
+                  <strong>{latestVod.title}</strong>
+                </span>
+              </a>
+
+              <button
+                className={`home-media-card home-hotclip-card ${latestHotclip ? "" : "is-empty"}`}
+                type="button"
+                onClick={openHotclipPage}
+              >
+                {latestHotclip && <img src={latestHotclip.thumbnail || HERO_IMAGE_URL} alt="" />}
+                <span>
+                  <small>HOT CLIP</small>
+                  <strong>{latestHotclip?.title || "핫클립 모아보기"}</strong>
+                </span>
+                <b>핫클립</b>
+              </button>
+            </div>
+          </section>
+
+          <section className="page-section about-section home-about-section" id="about">
+            <div className="section-copy">
+              <SectionTitle number="B" title="비숑을 소개합니다" eyebrow="ABOUT BICHON" />
+              <p className="lead-text">
+                장난기 많은 비숑입니다. 배그와 종겜을 좋아하고 소통도 좋아해요.
+              </p>
+              <div className="tag-list">
+                {ABOUT_TAGS.map((tag) => (
+                  <span key={tag}>#{tag}</span>
+                ))}
+              </div>
+              <div className="mini-history" aria-label="비숑 히스토리">
+                {HISTORY.map(([date, text]) => (
+                  <article key={date}>
+                    <strong>{date}</strong>
+                    <span>{text}</span>
+                  </article>
+                ))}
+              </div>
+            </div>
+
+            <article className="profile-panel">
+              {PROFILE_ITEMS.map(([label, value]) => (
+                <div key={label}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </article>
+          </section>
+
+          <footer className="footer-section home-footer">
+            <div>
+              <strong>Thank you for always being here!</strong>
+              <p>언제나 비숑을 응원해줘서 고마워요. 앞으로도 오래오래 함께해요!</p>
+            </div>
+          </footer>
+        </main>
+
         {pageLoadingOverlay}
       </div>
     );

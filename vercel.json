@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/soop-api/:path*",
+      "destination": "https://bjapi.afreecatv.com/:path*"
+    },
+    {
       "source": "/soop-sch/:path*",
       "destination": "https://sch.sooplive.com/:path*"
     },
