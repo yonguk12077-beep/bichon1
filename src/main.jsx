@@ -765,12 +765,16 @@ function App() {
   };
 
   const jumpToSection = (sectionId) => {
+    const shouldShowLoading = activePage !== "index" || activeAppSection !== sectionId;
     setActiveAppSection(sectionId);
 
-    if (activePage !== "index") {
+    if (shouldShowLoading) {
       startPageTransition(() => {
-        window.history.pushState({}, "", "/");
-        setActivePage("index");
+        if (activePage !== "index") {
+          window.history.pushState({}, "", "/");
+          setActivePage("index");
+        }
+
         window.setTimeout(() => {
           document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 0);
