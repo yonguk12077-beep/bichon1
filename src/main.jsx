@@ -81,6 +81,21 @@ const INTERNAL_ROUTES = {
   [UPBO_ROUTE]: UPBO_PAGE_ID,
 };
 
+const APP_RAIL_ITEMS = [
+  { id: "home", label: "홈", icon: "⌂", sectionId: "home" },
+  { id: "about", label: "소개", icon: "◎", sectionId: "about" },
+  { id: "schedule", label: "일정", icon: "▦", sectionId: "schedule" },
+  { id: "notice", label: "공지", icon: "!", sectionId: "notice" },
+  { id: "clips", label: "다시보기", icon: "▷", sectionId: "clips" },
+  { id: "hotclips", label: "핫클립", icon: "✦", route: HOTCLIP_ROUTE },
+  { id: "gallery", label: "팬아트", icon: "▧", route: FANART_ROUTE },
+  { id: "upbo", label: "시트지", icon: "▤", route: UPBO_ROUTE },
+];
+
+const MOBILE_APP_ITEMS = APP_RAIL_ITEMS.filter((item) =>
+  ["home", "schedule", "clips", "gallery"].includes(item.id)
+);
+
 const HOTCLIP_CATEGORIES = [
   { id: "battlegrounds", label: "배틀그라운드", shortLabel: "배그" },
   { id: "minecraft", label: "마인크래프트", shortLabel: "마크" },
@@ -566,6 +581,15 @@ function App() {
   const [noticeExpanded, setNoticeExpanded] = useState(false);
   const [noticeStatus, setNoticeStatus] = useState("loading");
   const [activePage, setActivePage] = useState(() => getPageFromPath(window.location.pathname));
+  const [activeAppSection, setActiveAppSection] = useState(() => {
+    const page = getPageFromPath(window.location.pathname);
+
+    if (page === FANART_GALLERY_ID) return "gallery";
+    if (page === HOTCLIP_PAGE_ID) return "hotclips";
+    if (page === UPBO_PAGE_ID) return "upbo";
+
+    return "home";
+  });
   const [galleryItems, setGalleryItems] = useState(() => createEmptyGallery());
   const [clipComposerOpen, setClipComposerOpen] = useState(false);
   const [clipDraftUrl, setClipDraftUrl] = useState("");
@@ -595,6 +619,8 @@ function App() {
     category,
     clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
   })).filter((group) => group.clips.length);
+  const activeAppLabel = APP_RAIL_ITEMS.find((item) => item.id === activeAppSection)?.label || "홈";
+  const appDateLabel = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -656,7 +682,14 @@ function App() {
 
   useEffect(() => {
     const syncInternalRoute = () => {
-      setActivePage(getPageFromPath(window.location.pathname));
+      const nextPage = getPageFromPath(window.location.pathname);
+
+      setActivePage(nextPage);
+      setActiveAppSection(
+        nextPage === FANART_GALLERY_ID ? "gallery" :
+          nextPage === HOTCLIP_PAGE_ID ? "hotclips" :
+            nextPage === UPBO_PAGE_ID ? "upbo" : "home"
+      );
     };
 
     window.addEventListener("popstate", syncInternalRoute);
@@ -750,12 +783,18 @@ function App() {
     startPageTransition(() => {
       window.history.pushState({}, "", route);
       setActivePage(getPageFromPath(route));
+      setActiveAppSection(
+        route === FANART_ROUTE ? "gallery" :
+          route === HOTCLIP_ROUTE ? "hotclips" : "upbo"
+      );
       setMenuOpen(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
 
   const jumpToSection = (sectionId) => {
+    setActiveAppSection(sectionId);
+
     if (activePage !== "index") {
       startPageTransition(() => {
         window.history.pushState({}, "", "/");
@@ -934,6 +973,7 @@ function App() {
     startPageTransition(() => {
       window.history.pushState({}, "", "/");
       setActivePage("index");
+      setActiveAppSection("home");
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   };
@@ -942,6 +982,7 @@ function App() {
     startPageTransition(() => {
       window.history.pushState({}, "", "/");
       setActivePage("index");
+      setActiveAppSection("hotclips");
       window.setTimeout(() => {
         document.getElementById("hotclips")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 0);
@@ -952,6 +993,7 @@ function App() {
     startPageTransition(() => {
       window.history.pushState({}, "", "/");
       setActivePage("index");
+      setActiveAppSection("gallery");
       window.setTimeout(() => {
         document.getElementById("gallery")?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 0);
@@ -1168,6 +1210,139 @@ function App() {
     }
   };
 
+  const openAppItem = (item) => {
+    setActiveAppSection(item.id);
+
+    if (item.route) {
+      if (activePage !== getPageFromPath(item.route)) {
+        openInternalPage(item.route);
+      }
+
+      setMenuOpen(false);
+      return;
+    }
+
+    jumpToSection(item.sectionId);
+  };
+
+  const appChrome = (
+    <>
+      <aside className="app-rail" aria-label="빠른 메뉴">
+        <button
+          className="app-rail-brand"
+          type="button"
+          onClick={() => jumpToSection("home")}
+          aria-label="BICHON 홈으로 이동"
+          data-tooltip="BICHON STATION"
+        >
+          B
+        </button>
+        <nav className="app-rail-nav">
+          {APP_RAIL_ITEMS.map((item) => (
+            <button
+              className={`app-rail-button ${activeAppSection === item.id ? "is-active" : ""}`}
+              type="button"
+              key={item.id}
+              onClick={() => openAppItem(item)}
+              aria-label={item.label}
+              aria-current={activeAppSection === item.id ? "page" : undefined}
+              data-tooltip={item.label}
+            >
+              <span aria-hidden="true">{item.icon}</span>
+            </button>
+          ))}
+        </nav>
+        <a
+          className="app-rail-external"
+          href={LINKS.soop}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="SOOP 방송국 열기"
+          data-tooltip="SOOP 방송국"
+        >
+          S
+        </a>
+      </aside>
+
+      <header className="top-bar">
+        <button className="brand-word" type="button" onClick={() => jumpToSection("home")}>
+          <span>BICHON STATION</span>
+          <strong>{activeAppLabel}</strong>
+        </button>
+        <div className="top-bar-actions">
+          <span className="app-date" aria-label={`오늘 ${appDateLabel}`}>{appDateLabel}</span>
+          <button
+            className={`hamburger ${menuOpen ? "open" : ""}`}
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "메뉴 닫기" : "메뉴 열기"}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+      </header>
+
+      {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
+
+      <aside className={`side-menu ${menuOpen ? "show" : ""}`}>
+        <button className="menu-close" type="button" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
+          ×
+        </button>
+        <div className="side-menu-brand">
+          <strong>BICHON</strong>
+          <small>STATION MENU</small>
+        </div>
+        <nav>
+          {MENU_ITEMS.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => {
+                if (item.route) {
+                  setActiveAppSection("upbo");
+                  openInternalPage(item.route);
+                  return;
+                }
+
+                jumpToSection(item.id);
+              }}
+            >
+              <span>{item.label}</span>
+              <small>{MENU_DESCRIPTIONS[item.id]}</small>
+            </button>
+          ))}
+        </nav>
+        <div className="menu-socials">
+          <a href={LINKS.soop} target="_blank" rel="noreferrer">SOOP</a>
+          <a href={LINKS.cafe} target="_blank" rel="noreferrer">CAFE</a>
+          <a href={LINKS.youtube} target="_blank" rel="noreferrer">YT</a>
+          <a href={LINKS.fansim} target="_blank" rel="noreferrer">M</a>
+        </div>
+      </aside>
+
+      <nav className="mobile-tab-bar" aria-label="모바일 빠른 메뉴">
+        {MOBILE_APP_ITEMS.map((item) => (
+          <button
+            className={activeAppSection === item.id ? "is-active" : ""}
+            type="button"
+            key={item.id}
+            onClick={() => openAppItem(item)}
+            aria-current={activeAppSection === item.id ? "page" : undefined}
+          >
+            <span aria-hidden="true">{item.icon}</span>
+            <small>{item.label}</small>
+          </button>
+        ))}
+        <button type="button" onClick={() => setMenuOpen(true)} aria-label="더보기 메뉴 열기">
+          <span aria-hidden="true">⋮</span>
+          <small>더보기</small>
+        </button>
+      </nav>
+    </>
+  );
+
   const pageLoadingOverlay = pageLoading && (
     <div className="page-loading-overlay" role="status" aria-live="polite" aria-label="페이지를 불러오는 중">
       <div className="loading-mascot-track" aria-hidden="true">
@@ -1181,6 +1356,7 @@ function App() {
   if (activePage === UPBO_PAGE_ID) {
     return (
       <div className="app-shell">
+        {appChrome}
         <main className="site-frame fanart-page-frame">
           <section className="page-section upbo-route-section">
             <div className="gallery-page-shell">
@@ -1234,6 +1410,7 @@ function App() {
   if (activePage === HOTCLIP_PAGE_ID) {
     return (
       <div className="app-shell">
+        {appChrome}
         <main className="site-frame fanart-page-frame">
           <section className="page-section hotclips-section hotclips-route-section">
             <div className="gallery-page-shell">
@@ -1320,6 +1497,7 @@ function App() {
   if (activePage === FANART_GALLERY_ID) {
     return (
       <div className="app-shell">
+        {appChrome}
         <main className="site-frame fanart-page-frame">
           <section className="page-section gallery-section fanart-route-section">
             <div className="gallery-page-shell">
@@ -1369,46 +1547,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="top-bar">
-        <button className="brand-word" onClick={() => jumpToSection("home")}>
-          BICHON
-        </button>
-        <button
-          className={`hamburger ${menuOpen ? "open" : ""}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="메뉴 열기"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-      </header>
-
-      {menuOpen && <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />}
-
-      <aside className={`side-menu ${menuOpen ? "show" : ""}`}>
-        <button className="menu-close" onClick={() => setMenuOpen(false)} aria-label="메뉴 닫기">
-          ×
-        </button>
-        <div className="side-menu-brand">
-          <strong>BICHON</strong>
-          <small>VIRTUAL STREAMER</small>
-        </div>
-        <nav>
-          {MENU_ITEMS.map((item) => (
-            <button key={item.id} onClick={() => (item.route ? openInternalPage(item.route) : jumpToSection(item.id))}>
-              <span>{item.label}</span>
-              <small>{MENU_DESCRIPTIONS[item.id]}</small>
-            </button>
-          ))}
-        </nav>
-        <div className="menu-socials">
-          <a href={LINKS.soop} target="_blank" rel="noreferrer">SOOP</a>
-          <a href={LINKS.cafe} target="_blank" rel="noreferrer">CAFE</a>
-          <a href={LINKS.youtube} target="_blank" rel="noreferrer">YT</a>
-          <a href={LINKS.fansim} target="_blank" rel="noreferrer">M</a>
-        </div>
-      </aside>
+      {appChrome}
 
       <main className="site-frame">
         <section className="hero-section" id="home">
@@ -1419,15 +1558,19 @@ function App() {
           </div>
 
           <div className="hero-copy">
-            <span>오늘도 같이 놀자!</span>
+            <span>BICHON STATION / HOME</span>
             <h1>BICHON</h1>
             <strong>VIRTUAL STREAMER</strong>
             <p>게임과 소통을 좋아하는 비숑과 솜뭉치의 팬페이지입니다.</p>
+            <div className="hero-quick-actions" aria-label="빠른 이동">
+              {APP_RAIL_ITEMS.filter((item) => ["schedule", "notice", "clips", "gallery"].includes(item.id)).map((item) => (
+                <button type="button" key={item.id} onClick={() => openAppItem(item)}>
+                  <span aria-hidden="true">{item.icon}</span>
+                  <strong>{item.label}</strong>
+                </button>
+              ))}
+            </div>
           </div>
-
-          <button className="scroll-cue" onClick={() => jumpToSection("about")}>
-            SCROLL DOWN
-          </button>
         </section>
 
         <section className="hero-status-strip" aria-label="방송 요약">
