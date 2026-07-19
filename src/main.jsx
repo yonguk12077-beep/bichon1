@@ -120,6 +120,7 @@ const DEFAULT_SCHEDULE = {
   rangeEnd: "",
 };
 const CLIPS_STORAGE_KEY = "bichon-user-clips-v1";
+const THEME_STORAGE_KEY = "bichon-color-theme";
 
 const SOOP_NOTICE_BOARD_NO = 82048012;
 const SOOP_NOTICE_POST_URL = "https://www.sooplive.com/station/merryou/post/200299679";
@@ -638,6 +639,14 @@ function getHotclipsByCategory(hotclips, categoryId) {
   return hotclips.filter((clip) => clip.category === categoryId);
 }
 
+function getInitialTheme() {
+  try {
+    return window.localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
+}
+
 function App() {
   const today = new Date();
   const todayKey = getDateKey(today);
@@ -672,6 +681,7 @@ function App() {
   const [liveBroadcast, setLiveBroadcast] = useState(OFFLINE_BROADCAST);
   const [liveStatus, setLiveStatus] = useState("loading");
   const [pageLoading, setPageLoading] = useState(false);
+  const [theme, setTheme] = useState(getInitialTheme);
   const pageLoadingTimerRef = useRef(null);
   const pageTransitionCallbackRef = useRef(null);
 
@@ -867,6 +877,16 @@ function App() {
   useEffect(() => {
     saveUserClips(userClips);
   }, [userClips]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // The selected theme still applies for the current page session.
+    }
+  }, [theme]);
 
   useEffect(() => () => {
     if (pageLoadingTimerRef.current) {
@@ -1326,6 +1346,10 @@ function App() {
     jumpToSection(item.sectionId);
   };
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
+
   const appChrome = (
     <>
       <aside className="app-rail" aria-label="빠른 메뉴">
@@ -1353,6 +1377,16 @@ function App() {
             </button>
           ))}
         </nav>
+        <button
+          className="app-rail-theme"
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+          aria-pressed={theme === "dark"}
+          data-tooltip={theme === "dark" ? "라이트 모드" : "다크 모드"}
+        >
+          <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+        </button>
         <a
           className="app-rail-external"
           href={LINKS.soop}
@@ -1364,6 +1398,16 @@ function App() {
           S
         </a>
       </aside>
+
+      <button
+        className="mobile-theme-toggle"
+        type="button"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환"}
+        aria-pressed={theme === "dark"}
+      >
+        <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+      </button>
 
       <nav className="mobile-tab-bar" aria-label="모바일 빠른 메뉴">
         {MOBILE_APP_ITEMS.map((item) => (
@@ -1989,7 +2033,6 @@ function App() {
           <section className={`home-hero ${liveBroadcast.isLive ? "is-live" : ""}`} id="home">
             <div className="home-hero-toolbar">
               <span>⌂ 홈</span>
-              <small>비공식 팬페이지</small>
             </div>
 
             <div className={`home-hero-profile ${liveBroadcast.isLive ? "is-live" : ""}`}>

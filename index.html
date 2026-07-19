@@ -9,6 +9,16 @@
       href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap"
       rel="stylesheet"
     />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("bichon-color-theme");
+        if (savedTheme === "dark" || savedTheme === "light") {
+          document.documentElement.dataset.theme = savedTheme;
+        }
+      } catch {
+        // The app will use the light theme when browser storage is unavailable.
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
