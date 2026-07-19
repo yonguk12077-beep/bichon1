@@ -3354,3 +3354,824 @@ button.day {
     padding-left: 4px;
   }
 }
+
+/* Compact fan portal home */
+.home-dashboard-frame {
+  width: min(1100px, 100%);
+  border-color: #d5dfec;
+  background: #edf2f8;
+}
+
+.home-hero {
+  min-height: 318px;
+  padding: 50px 28px 22px;
+  border-bottom: 1px solid #d6e0ea;
+  color: #24344b;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  justify-content: center;
+  background: #fff;
+}
+
+.home-hero::after {
+  background:
+    linear-gradient(90deg, rgba(78, 153, 203, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(78, 153, 203, 0.035) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.home-hero.is-live {
+  box-shadow: inset 0 0 0 3px #2f9fdf;
+}
+
+.home-hero-toolbar {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #728399;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.home-hero-toolbar small {
+  color: #8b9aac;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.home-hero-profile {
+  width: 92px;
+  margin: 0 auto;
+  padding: 4px;
+  border: 2px solid #8ed1f1;
+  border-radius: 50%;
+  background: #e7f7ff;
+  box-shadow: 0 10px 28px rgba(39, 127, 176, 0.18);
+}
+
+.home-hero-profile.is-live {
+  border-color: #269edc;
+  box-shadow: 0 0 0 5px rgba(38, 158, 220, 0.16), 0 10px 28px rgba(39, 127, 176, 0.2);
+}
+
+.home-hero-profile img {
+  border-radius: 50%;
+}
+
+.home-hero-profile > span {
+  top: -5px;
+  left: 62px;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: #238fcf;
+  font-size: 9px;
+}
+
+.home-hero-copy {
+  min-width: 0;
+  max-width: 640px;
+  margin: 12px auto 0;
+  text-align: center;
+}
+
+.home-hero-copy > small {
+  color: #3b95c9;
+  font-size: 10px;
+}
+
+.home-hero-copy h1 {
+  margin: 4px 0 5px;
+  color: #24344b;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.home-hero-copy p {
+  margin: 0 auto;
+  color: #748297;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.home-hero-meta {
+  display: none;
+}
+
+.home-live-strip {
+  position: static;
+  width: 100%;
+  min-height: 64px;
+  margin-top: 18px;
+  padding: 7px 9px;
+  border: 1px solid #72bce4;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  gap: 12px;
+  box-shadow: none;
+}
+
+.home-live-strip > img {
+  width: 92px;
+  height: 50px;
+}
+
+.home-live-copy strong {
+  font-size: 13px;
+}
+
+.home-live-strip > b {
+  min-height: 34px;
+}
+
+.home-live-check {
+  position: static;
+  margin-top: 16px;
+  color: #758799;
+}
+
+.home-dashboard {
+  padding: 14px;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 14px;
+  background: #e8eef7;
+}
+
+.home-link-panel,
+.home-feed-grid {
+  min-width: 0;
+}
+
+.home-link-panel {
+  padding: 16px 4px;
+}
+
+.home-panel-heading {
+  margin-bottom: 12px;
+}
+
+.home-panel-heading span {
+  display: none;
+}
+
+.home-panel-heading h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.home-quick-link-list {
+  gap: 9px;
+}
+
+.home-quick-link {
+  min-height: 66px;
+  padding: 9px 12px;
+  box-shadow: none;
+}
+
+.home-quick-link > span {
+  width: 38px;
+  height: 38px;
+}
+
+.home-quick-link > strong {
+  font-size: 15px;
+}
+
+.home-quick-link strong small {
+  font-size: 11px;
+}
+
+.home-feed-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.home-notice-card,
+.home-schedule-card {
+  grid-column: 1 / -1;
+}
+
+.home-summary-card,
+.home-media-card {
+  box-shadow: none;
+}
+
+.home-notice-card {
+  min-height: 58px;
+  padding: 12px 50px 12px 15px;
+  justify-content: center;
+}
+
+.home-notice-card > strong {
+  max-width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-notice-card > b {
+  right: 16px;
+  bottom: 17px;
+}
+
+.home-schedule-card {
+  min-height: 196px;
+  padding: 16px;
+}
+
+.home-schedule-card > strong {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.home-schedule-preview {
+  margin-top: 10px;
+  gap: 5px;
+}
+
+.home-schedule-preview > span {
+  min-height: 39px;
+  padding: 7px 8px;
+  border: 1px solid #dce5ef;
+  border-radius: 7px;
+  background: #fff;
+  grid-template-columns: 50px minmax(0, 1fr);
+}
+
+.home-media-card,
+.home-media-card > img {
+  min-height: 140px;
+}
+
+.home-media-card > span {
+  right: 13px;
+  bottom: 12px;
+  left: 13px;
+}
+
+.home-media-card strong {
+  font-size: 13px;
+}
+
+.home-about-section,
+.home-footer {
+  background: #fff;
+}
+
+/* Large calendar workspace */
+.schedule-page-shell {
+  padding: 12px 12px 12px 94px;
+  background: #e7edf7;
+}
+
+.schedule-page-frame {
+  width: 100%;
+  max-width: none;
+  min-height: calc(100dvh - 24px);
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.schedule-route-layout {
+  min-height: calc(100dvh - 24px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 276px;
+  gap: 12px;
+  align-items: start;
+}
+
+.schedule-calendar-pane {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #cbd8e8;
+  border-radius: 8px;
+  background: #dbe5f1;
+  overflow: hidden;
+}
+
+.schedule-calendar-head {
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.schedule-calendar-head span {
+  min-height: 34px;
+  padding: 0;
+  border-radius: 7px;
+  background: #35547e;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+}
+
+.schedule-calendar-head span:first-child {
+  color: #ffd7dc;
+}
+
+.schedule-calendar-head span:last-child {
+  color: #cbe9ff;
+}
+
+.schedule-calendar-grid {
+  gap: 4px;
+  background: #dbe5f1;
+}
+
+.schedule-calendar-grid .day {
+  min-width: 0;
+  min-height: 158px;
+  padding: 8px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff;
+  gap: 6px;
+  overflow: visible;
+}
+
+.schedule-calendar-grid .day.empty {
+  background: #edf2f8;
+}
+
+.schedule-calendar-grid .day > b {
+  min-width: 25px;
+  height: 25px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background: #f0f4f8;
+  color: #536579;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.schedule-calendar-grid .day.today {
+  outline: 3px solid #4f6fa1;
+  outline-offset: -3px;
+}
+
+.schedule-calendar-grid .day.today > b {
+  background: #35547e;
+  color: #fff;
+}
+
+.schedule-calendar-grid .day.is-off {
+  background: #fff2f3;
+}
+
+.schedule-calendar-grid .schedule-preview:not(.is-range) {
+  min-height: 86px;
+  padding: 10px 8px;
+  border: 1px solid #bfdcef;
+  border-radius: 7px;
+  background: #e8f6ff;
+  color: #1f5d82;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.schedule-calendar-grid .schedule-preview:not(.is-range) span {
+  width: auto;
+  max-width: 100%;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+}
+
+.schedule-calendar-grid .schedule-preview:not(.is-range) small {
+  color: inherit;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.schedule-calendar-grid .schedule-preview:not(.is-range) em {
+  color: inherit;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 1000;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.schedule-calendar-grid .schedule-preview.is-long:not(.is-range) {
+  border-color: #c9c1ef;
+  background: #eeeaff;
+  color: #5d4d96;
+}
+
+.schedule-calendar-grid .schedule-preview.is-waiting:not(.is-range) {
+  border-color: #d7dbe0;
+  background: #f1f2f4;
+  color: #68717a;
+}
+
+.schedule-calendar-grid .schedule-preview.is-off:not(.is-range) {
+  border-color: #efb8bd;
+  background: #ffdfe2;
+  color: #a6333d;
+}
+
+.schedule-calendar-grid .schedule-preview.is-off:not(.is-range) span {
+  background: transparent;
+  color: inherit;
+}
+
+.schedule-calendar-grid .schedule-preview.is-range {
+  min-height: 34px;
+  margin-top: 7px;
+  background: #5eaee0;
+  box-shadow: none;
+}
+
+.schedule-calendar-grid .schedule-preview.is-range.is-long {
+  background: #7a6dbc;
+}
+
+.schedule-calendar-grid .schedule-preview.is-range.is-off {
+  background: #dc5260;
+}
+
+.schedule-route-sidebar {
+  position: sticky;
+  top: 12px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.schedule-sidebar-heading,
+.schedule-sidebar-month,
+.schedule-sidebar-card {
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid #d5dfeb;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(55, 78, 112, 0.07);
+}
+
+.schedule-sidebar-heading {
+  padding: 17px 16px;
+}
+
+.schedule-sidebar-heading small {
+  color: #5f86b7;
+  font-size: 9px;
+  font-weight: 1000;
+}
+
+.schedule-sidebar-heading h1 {
+  margin: 4px 0 0;
+  color: #2d466e;
+  font-size: 22px;
+  font-weight: 1000;
+  letter-spacing: 0;
+}
+
+.schedule-sidebar-month {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  gap: 8px;
+  align-items: center;
+}
+
+.schedule-sidebar-month > button:not(.schedule-home-button) {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #dce6f0;
+  border-radius: 8px;
+  background: #f7fafc;
+  color: #35547e;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.schedule-sidebar-month > span {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+}
+
+.schedule-sidebar-month span small {
+  color: #8390a1;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.schedule-sidebar-month span strong {
+  color: #293f63;
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.schedule-home-button {
+  grid-column: 1 / -1;
+  min-height: 36px;
+  border-radius: 7px;
+  background: #eaf4fb;
+  color: #367cac;
+  font-size: 11px;
+  font-weight: 1000;
+  cursor: pointer;
+}
+
+.schedule-route-sidebar > .fanpage-status {
+  min-width: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #fff;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.schedule-sidebar-card {
+  padding: 14px;
+}
+
+.schedule-sidebar-title {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schedule-sidebar-card h2 {
+  margin: 0;
+  color: #2e4569;
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.schedule-sidebar-title > span {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #eaf0f7;
+  color: #536b8d;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 1000;
+}
+
+.schedule-sidebar-list {
+  display: grid;
+  gap: 7px;
+}
+
+.schedule-sidebar-list > button {
+  min-height: 58px;
+  padding: 8px;
+  border: 1px solid #dce5ef;
+  border-radius: 7px;
+  background: #f9fbfd;
+  color: #2e4569;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
+.schedule-sidebar-list > button.is-off {
+  border-color: #efbec3;
+  background: #fff0f1;
+  color: #a13b44;
+}
+
+.schedule-sidebar-list > button > b {
+  font-size: 12px;
+  text-align: center;
+}
+
+.schedule-sidebar-list > button > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.schedule-sidebar-list small {
+  color: inherit;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.schedule-sidebar-list strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 1000;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-sidebar-list p {
+  margin: 0;
+  color: #8190a1;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.schedule-legend-card > h2 {
+  margin-bottom: 11px;
+}
+
+.schedule-legend-card > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.schedule-legend-card span {
+  min-height: 26px;
+  padding: 0 8px;
+  border: 1px solid #dce5ef;
+  border-radius: 999px;
+  color: #617187;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.schedule-legend-card i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8fcbed;
+}
+
+.schedule-legend-card i.is-long {
+  background: #8a7ac8;
+}
+
+.schedule-legend-card i.is-waiting {
+  background: #aeb4bc;
+}
+
+.schedule-legend-card i.is-off {
+  background: #dc5260;
+}
+
+.schedule-sidebar-note {
+  margin: 0;
+  padding: 3px 8px;
+  color: #7d8998;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+@media (max-width: 1100px) {
+  .home-dashboard {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  }
+
+  .home-quick-link-list {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-route-layout {
+    grid-template-columns: minmax(0, 1fr) 244px;
+  }
+
+  .schedule-calendar-grid .day {
+    min-height: 145px;
+  }
+}
+
+@media (max-width: 980px) {
+  .home-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .home-quick-link-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schedule-page-shell {
+    padding: 10px 10px 84px;
+  }
+
+  .schedule-page-frame {
+    min-height: calc(100dvh - 94px);
+  }
+
+  .schedule-route-layout {
+    min-height: calc(100dvh - 94px);
+  }
+}
+
+@media (max-width: 760px) {
+  .schedule-route-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-route-sidebar {
+    position: static;
+    order: -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schedule-sidebar-heading,
+  .schedule-sidebar-month {
+    min-height: 126px;
+  }
+
+  .schedule-route-sidebar > .fanpage-status,
+  .schedule-sidebar-note {
+    grid-column: 1 / -1;
+  }
+
+  .schedule-calendar-pane {
+    overflow-x: auto;
+  }
+
+  .schedule-calendar-head,
+  .schedule-calendar-grid {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 680px) {
+  .home-hero {
+    min-height: 300px;
+    padding: 54px 18px 20px;
+  }
+
+  .home-hero-profile {
+    width: 80px;
+  }
+
+  .home-hero-copy h1 {
+    font-size: 25px;
+  }
+
+  .home-live-strip {
+    grid-template-columns: 78px minmax(0, 1fr);
+  }
+
+  .home-live-strip > img {
+    width: 78px;
+    height: 44px;
+  }
+
+  .home-dashboard {
+    padding: 10px;
+  }
+
+  .home-link-panel {
+    padding: 13px 0;
+  }
+
+  .home-quick-link-list,
+  .home-feed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-notice-card,
+  .home-schedule-card {
+    grid-column: auto;
+  }
+
+  .home-media-card,
+  .home-media-card > img {
+    min-height: 150px;
+  }
+
+  .schedule-route-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-sidebar-heading,
+  .schedule-sidebar-month {
+    min-height: 0;
+  }
+
+  .schedule-route-sidebar > .fanpage-status,
+  .schedule-sidebar-note {
+    grid-column: auto;
+  }
+}

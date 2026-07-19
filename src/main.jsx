@@ -1002,6 +1002,9 @@ function App() {
       continuesFromPrevious ? "continues-from-previous" : "",
       continuesToNext ? "continues-to-next" : "",
       !showRangeText ? "is-range-continuation" : "",
+      schedule.type === "방송 진행" ? "is-broadcast" : "",
+      schedule.type === "장기 컨텐츠" ? "is-long" : "",
+      schedule.type === "공지 대기 (미정)" ? "is-waiting" : "",
       schedule.type === "휴방" ? "is-off" : "",
     ].filter(Boolean).join(" ");
 
@@ -1469,38 +1472,17 @@ function App() {
 
   if (activePage === SCHEDULE_PAGE_ID) {
     return (
-      <div className="app-shell">
+      <div className="app-shell schedule-page-shell">
         {appChrome}
-        <main className="site-frame content-page-frame">
-          <section className="page-section schedule-route-section">
-            <button className="gallery-back-button" type="button" onClick={closeInternalPage}>
-              ← 홈으로 돌아가기
-            </button>
-
-            <div className="route-page-heading">
-              <SectionTitle number="01" title="방송 일정" eyebrow="SCHEDULE" />
-              <p>날짜를 누르면 일정을 추가하거나 수정할 수 있어요. 휴방 일정은 빨간색으로 표시됩니다.</p>
-            </div>
-
-            {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
-            {fanpageStatus === "offline" && (
-              <small className="fanpage-status fanpage-status-offline">
-                공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
-              </small>
-            )}
-
-            <section className="schedule-card schedule-route-calendar">
-              <div className="calendar-control">
-                <button type="button" onClick={() => moveMonth(-1)} aria-label="이전 달">‹</button>
-                <span>{monthDate.getFullYear()}년 {monthDate.getMonth() + 1}월</span>
-                <button type="button" onClick={() => moveMonth(1)} aria-label="다음 달">›</button>
-              </div>
-              <div className="calendar-head">
+        <main className="site-frame content-page-frame schedule-page-frame">
+          <div className="schedule-route-layout">
+            <section className="schedule-calendar-pane" aria-label="월간 방송 일정">
+              <div className="calendar-head schedule-calendar-head">
                 {WEEKDAYS.map((day) => (
                   <span key={day}>{day}</span>
                 ))}
               </div>
-              <div className="calendar-grid">
+              <div className="calendar-grid schedule-calendar-grid">
                 {monthDays.map((item, index) =>
                   item ? (
                     <button
@@ -1508,6 +1490,7 @@ function App() {
                       type="button"
                       key={item.key}
                       onClick={() => openScheduleEditor(item.date)}
+                      aria-label={`${formatKoreanDate(item.date)} 일정 보기 및 수정`}
                     >
                       <b>{item.day}</b>
                       {renderSchedule(item.key)}
@@ -1518,7 +1501,79 @@ function App() {
                 )}
               </div>
             </section>
-          </section>
+
+            <aside className="schedule-route-sidebar">
+              <div className="schedule-sidebar-heading">
+                <small>BICHON CALENDAR</small>
+                <h1>방송일정</h1>
+              </div>
+
+              <div className="schedule-sidebar-month">
+                <button type="button" onClick={() => moveMonth(-1)} aria-label="이전 달">◀</button>
+                <span>
+                  <small>{monthDate.getFullYear()}년</small>
+                  <strong>{monthDate.getMonth() + 1}월</strong>
+                </span>
+                <button type="button" onClick={() => moveMonth(1)} aria-label="다음 달">▶</button>
+                <button className="schedule-home-button" type="button" onClick={closeInternalPage}>
+                  홈
+                </button>
+              </div>
+
+              {fanpageStatus === "loading" && <small className="fanpage-status">일정 불러오는 중</small>}
+              {fanpageStatus === "offline" && (
+                <small className="fanpage-status fanpage-status-offline">
+                  공용 저장소 연결 실패 — Vercel 환경 변수를 확인해주세요
+                </small>
+              )}
+
+              <section className="schedule-sidebar-card">
+                <div className="schedule-sidebar-title">
+                  <h2>주요 일정</h2>
+                  <span>{upcomingSchedules.length}</span>
+                </div>
+                <div className="schedule-sidebar-list">
+                  {upcomingSchedules.length ? (
+                    upcomingSchedules.map(({ dateKey, schedule }) => (
+                      <button
+                        className={schedule.type === "휴방" ? "is-off" : ""}
+                        type="button"
+                        key={schedule.groupId || dateKey}
+                        onClick={() => {
+                          const targetDate = parseDateKey(dateKey);
+                          if (!targetDate) return;
+                          setMonthDate(targetDate);
+                          openScheduleEditor(targetDate);
+                        }}
+                      >
+                        <b>{formatShortDateKey(dateKey)}</b>
+                        <span>
+                          <small>{schedule.type}</small>
+                          <strong>{schedule.memo || schedule.startTime || schedule.type}</strong>
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <p>등록된 다음 일정이 없습니다.</p>
+                  )}
+                </div>
+              </section>
+
+              <section className="schedule-sidebar-card schedule-legend-card">
+                <h2>일정 구분</h2>
+                <div>
+                  <span><i className="is-broadcast" /> 방송</span>
+                  <span><i className="is-long" /> 장기 컨텐츠</span>
+                  <span><i className="is-waiting" /> 미정</span>
+                  <span><i className="is-off" /> 휴방</span>
+                </div>
+              </section>
+
+              <p className="schedule-sidebar-note">
+                날짜를 누르면 일정을 추가하거나 수정할 수 있어요. 방송 일정은 사정에 따라 변경될 수 있습니다.
+              </p>
+            </aside>
+          </div>
         </main>
         {scheduleEditorModal}
         {pageLoadingOverlay}
@@ -1824,15 +1879,20 @@ function App() {
 
         <main className="site-frame home-dashboard-frame">
           <section className={`home-hero ${liveBroadcast.isLive ? "is-live" : ""}`} id="home">
+            <div className="home-hero-toolbar">
+              <span>⌂ 홈</span>
+              <small>비공식 팬페이지</small>
+            </div>
+
             <div className={`home-hero-profile ${liveBroadcast.isLive ? "is-live" : ""}`}>
               {liveBroadcast.isLive && <span>LIVE</span>}
               <img src={HERO_IMAGE_URL} alt="비숑 프로필" />
             </div>
 
             <div className="home-hero-copy">
-              <small>BICHON FAN STATION</small>
-              <h1>비숑과 솜뭉치의 공간</h1>
-              <p>방송 일정과 공지, 다시보기와 팬 콘텐츠를 한곳에서 만나보세요.</p>
+              <small>BICHON FANPAGE</small>
+              <h1>비숑 BICHON</h1>
+              <p>비숑의 방송 일정과 팬 콘텐츠를 모아둔 팬 사이트입니다.</p>
               <div className="home-hero-meta">
                 <span>VIRTUAL STREAMER</span>
                 <span>FANDOM · 솜뭉치</span>
