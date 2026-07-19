@@ -5,6 +5,7 @@ import { deleteFanart, fetchFanart, uploadFanart } from "./lib/fanart.js";
 import { deleteHotclip, fetchHotclips, saveHotclip } from "./lib/hotclips.js";
 import { deleteScheduleGroup, fetchSchedules, saveScheduleGroup } from "./lib/schedules.js";
 import { deleteUpboFile, fetchUpboFiles, uploadUpboFile } from "./lib/upbo.js";
+import MiniGamePage from "./components/MiniGamePage.jsx";
 import "./style.css";
 
 const LINKS = {
@@ -34,6 +35,8 @@ const NOTICE_PAGE_ID = "notices";
 const NOTICE_ROUTE = "/notices";
 const VOD_PAGE_ID = "vod";
 const VOD_ROUTE = "/vod";
+const MINIGAME_PAGE_ID = "minigame";
+const MINIGAME_ROUTE = "/minigame";
 
 const PROFILE_ITEMS = [
   ["이름", "비숑"],
@@ -68,6 +71,7 @@ const INTERNAL_ROUTES = {
   [FANART_ROUTE]: FANART_GALLERY_ID,
   [HOTCLIP_ROUTE]: HOTCLIP_PAGE_ID,
   [UPBO_ROUTE]: UPBO_PAGE_ID,
+  [MINIGAME_ROUTE]: MINIGAME_PAGE_ID,
 };
 
 const APP_RAIL_ITEMS = [
@@ -79,6 +83,7 @@ const APP_RAIL_ITEMS = [
   { id: "hotclips", label: "핫클립", icon: "✦", route: HOTCLIP_ROUTE },
   { id: "gallery", label: "팬아트", icon: "▧", route: FANART_ROUTE },
   { id: "upbo", label: "시트지", icon: "▤", route: UPBO_ROUTE },
+  { id: "minigame", label: "미니게임", icon: "⚄", route: MINIGAME_ROUTE },
 ];
 
 const MOBILE_APP_ITEMS = APP_RAIL_ITEMS.filter((item) =>
@@ -98,10 +103,10 @@ const DEFAULT_HOTCLIP_DRAFT = {
 };
 
 const COMMUNITY_LINKS = [
-  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop, mark: "∞", tone: "soop" },
-  { title: "YouTube", text: "비숑 유튜브", href: LINKS.youtube, mark: "", tone: "youtube" },
-  { title: "비숑 네이버 카페", text: "솜뭉치 팬카페", href: LINKS.cafe, mark: "☕", tone: "cafe" },
-  { title: "팬심M", text: "마음을 전하는 공간", href: LINKS.fansim, mark: "M", tone: "fansim" },
+  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop, logo: "/logo-soop.png", tone: "soop" },
+  { title: "YouTube", text: "비숑 유튜브", href: LINKS.youtube, logo: "/logo-youtube.png", tone: "youtube" },
+  { title: "비숑 네이버 카페", text: "솜뭉치 팬카페", href: LINKS.cafe, logo: "/logo-naver-cafe.png", tone: "cafe" },
+  { title: "팬심M", text: "마음을 전하는 공간", href: LINKS.fansim, logo: "/logo-fansim.png", tone: "fansim" },
 ];
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -463,6 +468,7 @@ function getAppSectionFromPage(page) {
   if (page === FANART_GALLERY_ID) return "gallery";
   if (page === HOTCLIP_PAGE_ID) return "hotclips";
   if (page === UPBO_PAGE_ID) return "upbo";
+  if (page === MINIGAME_PAGE_ID) return "minigame";
 
   return "home";
 }
@@ -1962,6 +1968,18 @@ function App() {
     );
   }
 
+  if (activePage === MINIGAME_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        {appChrome}
+        <main className="site-frame minigame-page-frame">
+          <MiniGamePage onBack={() => jumpToSection("home")} />
+        </main>
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
+
   if (activePage === "index") {
     return (
       <div className="app-shell">
@@ -2026,7 +2044,9 @@ function App() {
                     rel="noreferrer"
                     key={link.title}
                   >
-                    <span aria-hidden="true">{link.mark}</span>
+                    <span aria-hidden="true">
+                      <img src={link.logo} alt="" />
+                    </span>
                     <strong>
                       {link.title}
                       <small>{link.text}</small>
@@ -2035,13 +2055,18 @@ function App() {
                 ))}
               </div>
 
-              <section className="home-minigame-panel" aria-label="미니게임 준비 공간">
+              <button
+                className="home-minigame-panel"
+                type="button"
+                onClick={() => openInternalPage(MINIGAME_ROUTE)}
+                aria-label="미니게임 페이지 열기"
+              >
                 <div>
                   <small>MINI GAME</small>
                   <h3>미니게임</h3>
                 </div>
-                <span>COMING SOON</span>
-              </section>
+                <span>PLAY</span>
+              </button>
             </div>
 
             <div className="home-feed-grid">
