@@ -26,6 +26,8 @@ const DEFAULT_LATEST_VOD_THUMBNAIL =
 const VOD_DISPLAY_LIMIT = 5;
 const UPBO_PAGE_ID = "upbo";
 const UPBO_ROUTE = "/upbo";
+const ABOUT_PAGE_ID = "about";
+const ABOUT_ROUTE = "/about";
 const SCHEDULE_PAGE_ID = "schedule";
 const SCHEDULE_ROUTE = "/schedule";
 const NOTICE_PAGE_ID = "notices";
@@ -59,6 +61,7 @@ const HOTCLIP_ROUTE = "/hotclips";
 const ABOUT_TAGS = ["게임", "버인", "소통", "배그", "힐링"];
 
 const INTERNAL_ROUTES = {
+  [ABOUT_ROUTE]: ABOUT_PAGE_ID,
   [SCHEDULE_ROUTE]: SCHEDULE_PAGE_ID,
   [NOTICE_ROUTE]: NOTICE_PAGE_ID,
   [VOD_ROUTE]: VOD_PAGE_ID,
@@ -69,7 +72,7 @@ const INTERNAL_ROUTES = {
 
 const APP_RAIL_ITEMS = [
   { id: "home", label: "홈", icon: "⌂", sectionId: "home" },
-  { id: "about", label: "소개", icon: "◎", sectionId: "about" },
+  { id: "about", label: "소개", icon: "◎", route: ABOUT_ROUTE },
   { id: "schedule", label: "일정", icon: "▦", route: SCHEDULE_ROUTE },
   { id: "notice", label: "공지", icon: "!", route: NOTICE_ROUTE },
   { id: "clips", label: "다시보기", icon: "▷", route: VOD_ROUTE },
@@ -79,7 +82,7 @@ const APP_RAIL_ITEMS = [
 ];
 
 const MOBILE_APP_ITEMS = APP_RAIL_ITEMS.filter((item) =>
-  ["home", "schedule", "clips", "hotclips", "gallery"].includes(item.id)
+  ["home", "about", "schedule", "clips", "hotclips", "gallery"].includes(item.id)
 );
 
 const HOTCLIP_CATEGORIES = [
@@ -95,17 +98,17 @@ const DEFAULT_HOTCLIP_DRAFT = {
 };
 
 const COMMUNITY_LINKS = [
-  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop, mark: "S", tone: "soop" },
-  { title: "YouTube", text: "비숑 유튜브", href: LINKS.youtube, mark: "Y", tone: "youtube" },
-  { title: "비숑 네이버 카페", text: "솜뭉치 팬카페", href: LINKS.cafe, mark: "N", tone: "cafe" },
-  { title: "팬심M", text: "마음을 전하는 공간", href: LINKS.fansim, mark: "F", tone: "fansim" },
+  { title: "SOOP 방송국", text: "비숑 방송국", href: LINKS.soop, mark: "∞", tone: "soop" },
+  { title: "YouTube", text: "비숑 유튜브", href: LINKS.youtube, mark: "", tone: "youtube" },
+  { title: "비숑 네이버 카페", text: "솜뭉치 팬카페", href: LINKS.cafe, mark: "☕", tone: "cafe" },
+  { title: "팬심M", text: "마음을 전하는 공간", href: LINKS.fansim, mark: "M", tone: "fansim" },
 ];
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const MONDAY_WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
-const BROADCAST_TYPES = ["방송 진행", "장기 컨텐츠", "휴방", "공지 대기 (미정)"];
+const BROADCAST_TYPES = ["미정", "방송예정", "휴방"];
 const DEFAULT_SCHEDULE = {
-  type: "공지 대기 (미정)",
+  type: "미정",
   startTime: "",
   memo: "",
   rangeStart: "",
@@ -453,6 +456,7 @@ function getPageFromPath(pathname) {
 }
 
 function getAppSectionFromPage(page) {
+  if (page === ABOUT_PAGE_ID) return "about";
   if (page === SCHEDULE_PAGE_ID) return "schedule";
   if (page === NOTICE_PAGE_ID) return "notice";
   if (page === VOD_PAGE_ID) return "clips";
@@ -461,6 +465,21 @@ function getAppSectionFromPage(page) {
   if (page === UPBO_PAGE_ID) return "upbo";
 
   return "home";
+}
+
+function normalizeScheduleType(type) {
+  if (type === "방송 진행" || type === "장기 컨텐츠") return "방송예정";
+  if (type === "공지 대기 (미정)") return "미정";
+
+  return BROADCAST_TYPES.includes(type) ? type : DEFAULT_SCHEDULE.type;
+}
+
+function isScheduledType(type) {
+  return normalizeScheduleType(type) === "방송예정";
+}
+
+function isWaitingType(type) {
+  return normalizeScheduleType(type) === "미정";
 }
 
 function parseDateKey(dateKey) {
@@ -493,6 +512,12 @@ function formatShortDateKey(dateKey) {
   const date = parseDateKey(dateKey);
 
   return date ? `${date.getMonth() + 1}/${date.getDate()}` : "";
+}
+
+function formatWeekdayFromDateKey(dateKey) {
+  const date = parseDateKey(dateKey);
+
+  return date ? WEEKDAYS[date.getDay()] : "";
 }
 
 function formatKoreanDate(date) {
@@ -899,6 +924,7 @@ function App() {
     setScheduleDraft({
       ...DEFAULT_SCHEDULE,
       ...(existingSchedule || {}),
+      type: normalizeScheduleType(existingSchedule?.type),
       rangeStart: existingSchedule?.rangeStart || dateKey,
       rangeEnd: existingSchedule?.rangeEnd || "",
     });
@@ -928,7 +954,7 @@ function App() {
       const updatedSchedules = await saveScheduleGroup({
         groupId,
         existingGroupId: existingSchedule?.groupId,
-        type: scheduleDraft.type,
+        type: normalizeScheduleType(scheduleDraft.type),
         startTime: scheduleDraft.startTime.trim(),
         memo: scheduleDraft.memo.trim(),
         rangeStart,
@@ -1002,17 +1028,17 @@ function App() {
       continuesFromPrevious ? "continues-from-previous" : "",
       continuesToNext ? "continues-to-next" : "",
       !showRangeText ? "is-range-continuation" : "",
-      schedule.type === "방송 진행" ? "is-broadcast" : "",
+      isScheduledType(schedule.type) ? "is-broadcast" : "",
       schedule.type === "장기 컨텐츠" ? "is-long" : "",
-      schedule.type === "공지 대기 (미정)" ? "is-waiting" : "",
+      isWaitingType(schedule.type) ? "is-waiting" : "",
       schedule.type === "휴방" ? "is-off" : "",
     ].filter(Boolean).join(" ");
 
     return (
       <span className={scheduleClassName}>
-        {showRangeText && (
+        {showRangeText && schedule.type === "휴방" && <span>휴방</span>}
+        {showRangeText && schedule.type !== "휴방" && (
           <>
-            <span>{schedule.type}</span>
             {rangeLabel && <small>{rangeLabel}</small>}
             {schedule.startTime && <small>{schedule.startTime}</small>}
             {schedule.memo && <em>{schedule.memo}</em>}
@@ -1407,10 +1433,10 @@ function App() {
           ×
         </button>
 
-        <h2>{formatKoreanDate(editingDate.date)} 일정 수정</h2>
+        <h2>{formatKoreanDate(editingDate.date)} 일정</h2>
 
         <label>
-          방송 구분
+          일정 상태
           <select value={scheduleDraft.type} onChange={(event) => updateDraft("type", event.target.value)}>
             {BROADCAST_TYPES.map((type) => (
               <option value={type} key={type}>
@@ -1421,26 +1447,26 @@ function App() {
         </label>
 
         <label>
-          방송 시작 시간
+          시간
           <input
             value={scheduleDraft.startTime}
             onChange={(event) => updateDraft("startTime", event.target.value)}
-            placeholder="예: 오후 8시"
+            placeholder="예: 오후 6시"
           />
         </label>
 
         <label>
-          방송 내용 / 비고
+          일정 내용
           <input
             value={scheduleDraft.memo}
             onChange={(event) => updateDraft("memo", event.target.value)}
-            placeholder="예: 마크 하코 대결"
+            placeholder="예: 생일 방송"
           />
         </label>
 
         <div className="schedule-range-fields">
           <label>
-            장기 컨텐츠 시작일
+            이어지는 일정 시작일
             <input
               type="date"
               value={scheduleDraft.rangeStart}
@@ -1448,7 +1474,7 @@ function App() {
             />
           </label>
           <label>
-            장기 컨텐츠 종료일
+            이어지는 일정 종료일
             <input
               type="date"
               value={scheduleDraft.rangeEnd}
@@ -1469,6 +1495,57 @@ function App() {
       </form>
     </div>
   );
+
+  if (activePage === ABOUT_PAGE_ID) {
+    return (
+      <div className="app-shell">
+        {appChrome}
+        <main className="site-frame content-page-frame about-page-frame">
+          <section className="page-section about-section about-route-section">
+            <button className="back-to-main" type="button" onClick={closeInternalPage}>
+              ← 메인으로 돌아가기
+            </button>
+
+            <div className="about-route-heading">
+              <SectionTitle number="01" title="비숑을 소개합니다" eyebrow="ABOUT BICHON" />
+              <p className="lead-text">
+                장난기 많은 비숑입니다. 배그와 종겜을 좋아하고 소통도 좋아해요.
+              </p>
+              <div className="tag-list">
+                {ABOUT_TAGS.map((tag) => (
+                  <span key={tag}>#{tag}</span>
+                ))}
+              </div>
+            </div>
+
+            <div className="about-route-content">
+              <article className="profile-panel">
+                {PROFILE_ITEMS.map(([label, value]) => (
+                  <div key={label}>
+                    <span>{label}</span>
+                    <strong>{value}</strong>
+                  </div>
+                ))}
+              </article>
+
+              <section className="about-history-panel" aria-label="비숑 히스토리">
+                <h2>BICHON HISTORY</h2>
+                <div className="mini-history">
+                  {HISTORY.map(([date, text]) => (
+                    <article key={date}>
+                      <strong>{date}</strong>
+                      <span>{text}</span>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </div>
+          </section>
+        </main>
+        {pageLoadingOverlay}
+      </div>
+    );
+  }
 
   if (activePage === SCHEDULE_PAGE_ID) {
     return (
@@ -1546,11 +1623,15 @@ function App() {
                           openScheduleEditor(targetDate);
                         }}
                       >
-                        <b>{formatShortDateKey(dateKey)}</b>
+                        <b>
+                          <strong>{formatShortDateKey(dateKey)}</strong>
+                          <small>{formatWeekdayFromDateKey(dateKey)}</small>
+                        </b>
                         <span>
-                          <small>{schedule.type}</small>
-                          <strong>{schedule.memo || schedule.startTime || schedule.type}</strong>
+                          <small>{normalizeScheduleType(schedule.type)}</small>
+                          <strong>{schedule.type === "휴방" ? "휴방" : schedule.memo || "방송 일정"}</strong>
                         </span>
+                        {schedule.type !== "휴방" && <em>{schedule.startTime || "시간 미정"}</em>}
                       </button>
                     ))
                   ) : (
@@ -1562,9 +1643,8 @@ function App() {
               <section className="schedule-sidebar-card schedule-legend-card">
                 <h2>일정 구분</h2>
                 <div>
-                  <span><i className="is-broadcast" /> 방송</span>
-                  <span><i className="is-long" /> 장기 컨텐츠</span>
                   <span><i className="is-waiting" /> 미정</span>
+                  <span><i className="is-broadcast" /> 방송예정</span>
                   <span><i className="is-off" /> 휴방</span>
                 </div>
               </section>
@@ -1892,7 +1972,10 @@ function App() {
             <div className="home-hero-copy">
               <small>BICHON FANPAGE</small>
               <h1>비숑 BICHON</h1>
-              <p>비숑의 방송 일정과 팬 콘텐츠를 모아둔 팬 사이트입니다.</p>
+              <p>비숑과 솜뭉치들의 아늑한 쉼터</p>
+              <button className="home-about-link" type="button" onClick={() => openInternalPage(ABOUT_ROUTE)}>
+                비숑 소개 보기
+              </button>
               <div className="home-hero-meta">
                 <span>VIRTUAL STREAMER</span>
                 <span>FANDOM · 솜뭉치</span>
@@ -1960,22 +2043,36 @@ function App() {
                 type="button"
                 onClick={() => openInternalPage(SCHEDULE_ROUTE)}
               >
-                <span className="home-card-label">일정</span>
-                <strong>방송 캘린더</strong>
-                <div className="home-schedule-preview">
+                <div className="home-major-heading">
+                  <strong>
+                    <i aria-hidden="true" />
+                    주요 일정
+                  </strong>
+                  <span>{upcomingSchedules.length}</span>
+                </div>
+                <div className="home-major-schedule-list">
                   {upcomingSchedules.length ? (
-                    upcomingSchedules.map(({ dateKey, schedule }) => (
-                      <span className={schedule.type === "휴방" ? "is-off" : ""} key={schedule.groupId || dateKey}>
-                        <b>{formatShortDateKey(dateKey)}</b>
-                        <em>{schedule.memo || schedule.type}</em>
-                      </span>
+                    upcomingSchedules.slice(0, 1).map(({ dateKey, schedule }) => (
+                      <article
+                        className={schedule.type === "휴방" ? "is-off" : ""}
+                        key={schedule.groupId || dateKey}
+                      >
+                        <b>
+                          <strong>{formatShortDateKey(dateKey)}</strong>
+                          <small>{formatWeekdayFromDateKey(dateKey)}</small>
+                        </b>
+                        <span>
+                          <small>{normalizeScheduleType(schedule.type)}</small>
+                          <strong>{schedule.type === "휴방" ? "휴방" : schedule.memo || "방송 일정"}</strong>
+                        </span>
+                        {schedule.type !== "휴방" && <em>{schedule.startTime || "시간 미정"}</em>}
+                      </article>
                     ))
                   ) : (
-                    <span>
-                      <em>등록된 다음 일정이 없습니다.</em>
-                    </span>
+                    <p>등록된 주요 일정이 없습니다.</p>
                   )}
                 </div>
+                <p className="home-major-note">방송 일정은 사정에 따라 변경될 수 있습니다.</p>
               </button>
 
               <a
@@ -2004,37 +2101,6 @@ function App() {
                 <b>핫클립</b>
               </button>
             </div>
-          </section>
-
-          <section className="page-section about-section home-about-section" id="about">
-            <div className="section-copy">
-              <SectionTitle number="B" title="비숑을 소개합니다" eyebrow="ABOUT BICHON" />
-              <p className="lead-text">
-                장난기 많은 비숑입니다. 배그와 종겜을 좋아하고 소통도 좋아해요.
-              </p>
-              <div className="tag-list">
-                {ABOUT_TAGS.map((tag) => (
-                  <span key={tag}>#{tag}</span>
-                ))}
-              </div>
-              <div className="mini-history" aria-label="비숑 히스토리">
-                {HISTORY.map(([date, text]) => (
-                  <article key={date}>
-                    <strong>{date}</strong>
-                    <span>{text}</span>
-                  </article>
-                ))}
-              </div>
-            </div>
-
-            <article className="profile-panel">
-              {PROFILE_ITEMS.map(([label, value]) => (
-                <div key={label}>
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-            </article>
           </section>
 
           <footer className="footer-section home-footer">
