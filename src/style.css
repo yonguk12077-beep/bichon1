@@ -4839,7 +4839,13 @@ button.day {
   border-color: #cfdeea;
   background: #fff !important;
   box-shadow: inset 0 0 0 2px #f5f9fc;
+  display: flex;
+  align-self: center;
+  justify-self: center;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  line-height: 0;
   transform: none !important;
 }
 
@@ -4849,14 +4855,23 @@ button.day {
 }
 
 .home-quick-link > span img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+  max-width: 38px;
+  max-height: 38px;
+  margin: auto;
   display: block;
   object-fit: contain;
+  object-position: center;
 }
 
 .home-quick-link.is-soop > span {
-  padding: 8px 2px;
+  padding: 4px 2px;
+}
+
+.home-quick-link.is-soop > span img {
+  max-width: 48px;
+  max-height: 30px;
 }
 
 .home-quick-link.is-youtube > span,
