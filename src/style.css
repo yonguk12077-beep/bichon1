@@ -4545,3 +4545,243 @@ button.day {
   inset: 0;
   z-index: 120;
 }
+
+/* Home utility panels and persistent page transition */
+.home-panel-heading {
+  position: relative;
+  min-height: 58px;
+  margin: 0 0 10px;
+  padding: 0 16px;
+  border: 1px solid #b8ddf2;
+  border-radius: 8px;
+  background: #dff3ff;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.home-panel-heading::after {
+  content: "↗";
+  position: absolute;
+  right: 16px;
+  color: #4e9bc8;
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.home-panel-heading h2 {
+  color: #285875;
+  font-size: 17px;
+}
+
+.home-quick-link {
+  grid-template-columns: 48px minmax(0, 1fr) 18px;
+}
+
+.home-quick-link > span {
+  width: 44px;
+  height: 44px;
+  border-color: #c9d7e7;
+  box-shadow: inset 0 0 0 3px #f7fbff;
+}
+
+.home-quick-link.is-soop > span {
+  font-size: 34px;
+  font-weight: 1000;
+  transform: none;
+}
+
+.home-quick-link.is-youtube > span::before {
+  width: 29px;
+  height: 21px;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(224, 46, 39, 0.18);
+}
+
+.home-quick-link.is-youtube > span::after {
+  margin-left: 3px;
+  border-top-width: 5px;
+  border-bottom-width: 5px;
+  border-left-width: 8px;
+}
+
+.home-quick-link.is-cafe > span {
+  background:
+    radial-gradient(ellipse 6px 3px at 55% 24%, #6ed957 0 95%, transparent 100%),
+    #fff !important;
+}
+
+.home-quick-link.is-cafe > span::before {
+  width: 24px;
+  height: 14px;
+  border-radius: 3px 3px 9px 9px;
+  background: #56c958;
+  box-shadow: inset 0 -2px 0 rgba(30, 150, 52, 0.12);
+  transform: translateX(-2px) translateY(3px);
+}
+
+.home-quick-link.is-cafe > span::after {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  margin-left: 19px;
+  border-color: #56c958;
+}
+
+.home-quick-link.is-fansim > span {
+  font-size: 26px;
+  transform: none;
+}
+
+.home-minigame-panel {
+  position: relative;
+  min-height: 132px;
+  margin-top: 10px;
+  padding: 16px;
+  border: 1px solid #c4dff0;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(95, 183, 229, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(95, 183, 229, 0.08) 1px, transparent 1px),
+    #f3fbff;
+  background-size: 22px 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.home-minigame-panel::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: 17px;
+  width: 78px;
+  height: 42px;
+  border: 2px solid rgba(72, 157, 202, 0.2);
+  border-top-width: 8px;
+  border-radius: 8px;
+  transform: rotate(-4deg);
+}
+
+.home-minigame-panel div {
+  position: relative;
+  z-index: 1;
+}
+
+.home-minigame-panel small {
+  color: #5b9fc4;
+  font-size: 9px;
+  font-weight: 1000;
+}
+
+.home-minigame-panel h3 {
+  margin: 4px 0 0;
+  color: #2d5872;
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.home-minigame-panel > span {
+  position: relative;
+  z-index: 1;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid #b8dcec;
+  border-radius: 7px;
+  background: #fff;
+  color: #6193ad;
+  display: inline-flex;
+  align-items: center;
+  font-size: 8px;
+  font-weight: 1000;
+}
+
+.home-footer {
+  position: relative;
+  min-height: 156px;
+  padding: 28px 72px;
+  border-top: 0;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.055) 0 16px, transparent 16px 32px),
+    #2a83b9 !important;
+  color: #fff;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.home-footer::before,
+.home-footer::after {
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: 20px;
+  width: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.24);
+}
+
+.home-footer::before {
+  left: 24px;
+  border-right: 0;
+}
+
+.home-footer::after {
+  right: 24px;
+  border-left: 0;
+}
+
+.home-footer > small {
+  color: #c9efff;
+  font-size: 9px;
+  font-weight: 1000;
+}
+
+.home-footer strong {
+  margin-top: 7px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 27px;
+  font-style: normal;
+  font-weight: 1000;
+}
+
+.home-footer p {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 11px;
+}
+
+.app-shell > .page-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+}
+
+.loading-mascot-track img,
+.loading-mascot-track::after,
+.loading-portal,
+.page-loading-overlay::before {
+  animation-duration: 2.25s;
+}
+
+@media (max-width: 680px) {
+  .home-panel-heading {
+    min-height: 52px;
+  }
+
+  .home-minigame-panel {
+    min-height: 112px;
+  }
+
+  .home-footer {
+    min-height: 142px;
+    padding: 24px 38px 86px;
+  }
+
+  .home-footer strong {
+    font-size: 21px;
+  }
+}

@@ -17,8 +17,8 @@ const LINKS = {
 
 const HERO_IMAGE_URL = "/hero.png";
 const LOADING_MASCOT_URL = "/loading-mascot.png";
-const PAGE_TRANSITION_DELAY_MS = 110;
-const PAGE_TRANSITION_DURATION_MS = 900;
+const PAGE_TRANSITION_DELAY_MS = 140;
+const PAGE_TRANSITION_DURATION_MS = 2600;
 const DEFAULT_LATEST_VOD_ID = "200178791";
 const DEFAULT_LATEST_VOD_URL = `https://vod.sooplive.com/player/${DEFAULT_LATEST_VOD_ID}`;
 const DEFAULT_LATEST_VOD_THUMBNAIL =
@@ -667,6 +667,7 @@ function App() {
   const [liveStatus, setLiveStatus] = useState("loading");
   const [pageLoading, setPageLoading] = useState(false);
   const pageLoadingTimerRef = useRef(null);
+  const pageTransitionCallbackRef = useRef(null);
 
   const monthDays = getMonthDays(monthDate);
   const verticalWeekDates = getMondayWeekDates(today);
@@ -865,6 +866,9 @@ function App() {
     if (pageLoadingTimerRef.current) {
       window.clearTimeout(pageLoadingTimerRef.current);
     }
+    if (pageTransitionCallbackRef.current) {
+      window.clearTimeout(pageTransitionCallbackRef.current);
+    }
   }, []);
 
   const startPageTransition = (callback) => {
@@ -873,8 +877,14 @@ function App() {
     if (pageLoadingTimerRef.current) {
       window.clearTimeout(pageLoadingTimerRef.current);
     }
+    if (pageTransitionCallbackRef.current) {
+      window.clearTimeout(pageTransitionCallbackRef.current);
+    }
 
-    window.setTimeout(callback, PAGE_TRANSITION_DELAY_MS);
+    pageTransitionCallbackRef.current = window.setTimeout(() => {
+      callback();
+      pageTransitionCallbackRef.current = null;
+    }, PAGE_TRANSITION_DELAY_MS);
     pageLoadingTimerRef.current = window.setTimeout(() => {
       setPageLoading(false);
       pageLoadingTimerRef.current = null;
@@ -2025,6 +2035,14 @@ function App() {
                   </a>
                 ))}
               </div>
+
+              <section className="home-minigame-panel" aria-label="미니게임 준비 공간">
+                <div>
+                  <small>MINI GAME</small>
+                  <h3>미니게임</h3>
+                </div>
+                <span>COMING SOON</span>
+              </section>
             </div>
 
             <div className="home-feed-grid">
@@ -2104,10 +2122,9 @@ function App() {
           </section>
 
           <footer className="footer-section home-footer">
-            <div>
-              <strong>Thank you for always being here!</strong>
-              <p>언제나 비숑을 응원해줘서 고마워요. 앞으로도 오래오래 함께해요!</p>
-            </div>
+            <small>BICHON SAMGUKJI SERVER</small>
+            <strong>비숑 삼국지 서버 많관부</strong>
+            <p>솜뭉치들과 함께 만드는 새로운 이야기</p>
           </footer>
         </main>
 
