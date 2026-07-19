@@ -2031,7 +2031,6 @@ function App() {
                       {link.title}
                       <small>{link.text}</small>
                     </strong>
-                    <b aria-hidden="true">↗</b>
                   </a>
                 ))}
               </div>
@@ -2122,9 +2121,7 @@ function App() {
           </section>
 
           <footer className="footer-section home-footer">
-            <small>BICHON SAMGUKJI SERVER</small>
-            <strong>비숑 삼국지 서버 많관부</strong>
-            <p>솜뭉치들과 함께 만드는 새로운 이야기</p>
+            <strong>비숑 삼국지 많관부</strong>
           </footer>
         </main>
 
