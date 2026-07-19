@@ -619,8 +619,6 @@ function App() {
     category,
     clips: getHotclipsByCategory(hotclips, category.id).slice(0, 1),
   })).filter((group) => group.clips.length);
-  const activeAppLabel = APP_RAIL_ITEMS.find((item) => item.id === activeAppSection)?.label || "홈";
-  const appDateLabel = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, "0")}.${String(today.getDate()).padStart(2, "0")}`;
 
   const loadLatestVod = useCallback(async () => {
     try {
@@ -1265,12 +1263,7 @@ function App() {
       </aside>
 
       <header className="top-bar">
-        <button className="brand-word" type="button" onClick={() => jumpToSection("home")}>
-          <span>BICHON STATION</span>
-          <strong>{activeAppLabel}</strong>
-        </button>
         <div className="top-bar-actions">
-          <span className="app-date" aria-label={`오늘 ${appDateLabel}`}>{appDateLabel}</span>
           <button
             className={`hamburger ${menuOpen ? "open" : ""}`}
             type="button"
