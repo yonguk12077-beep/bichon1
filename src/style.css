@@ -4824,6 +4824,10 @@ button.day {
   min-height: 68px;
 }
 
+.home-link-panel {
+  padding-top: 0;
+}
+
 .home-quick-link {
   grid-template-columns: 58px minmax(0, 1fr);
 }
@@ -5153,6 +5157,10 @@ button.day {
   .home-notice-card {
     height: 64px;
     min-height: 64px;
+  }
+
+  .home-link-panel {
+    padding-top: 0;
   }
 
   .home-quick-link {
