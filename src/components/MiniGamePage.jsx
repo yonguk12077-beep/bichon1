@@ -658,9 +658,7 @@ function LadderGame() {
                   className={revealedLadderResult === index ? "is-selected" : ""}
                   key={index}
                 >
-                  {revealedLadderResult === index
-                    ? getDisplayValue(ladderResults[index], `결과 ${index + 1}`)
-                    : "?"}
+                  {getDisplayValue(ladderResults[index], `결과 ${index + 1}`)}
                 </span>
               ))}
             </div>
