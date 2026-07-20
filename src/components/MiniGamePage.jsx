@@ -201,10 +201,44 @@ function traceLadderPath(startIndex, rows, playerCount) {
 
   return {
     destination: currentColumn,
-    points: pointPairs.map(([x, y]) => `${x},${y}`).join(" "),
-    motionPath: pointPairs
-      .map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x} ${y}`)
-      .join(" "),
+    pointPairs,
+  };
+}
+
+function getLadderProgressPath(pointPairs, progress) {
+  if (!pointPairs?.length) return null;
+
+  const segments = pointPairs.slice(1).map((point, index) => {
+    const previousPoint = pointPairs[index];
+    return {
+      start: previousPoint,
+      end: point,
+      length: Math.hypot(point[0] - previousPoint[0], point[1] - previousPoint[1]),
+    };
+  });
+  const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
+  let remainingLength = totalLength * Math.min(1, Math.max(0, progress));
+  const visiblePoints = [pointPairs[0]];
+
+  for (const segment of segments) {
+    if (remainingLength >= segment.length) {
+      visiblePoints.push(segment.end);
+      remainingLength -= segment.length;
+      continue;
+    }
+
+    const segmentProgress = segment.length ? remainingLength / segment.length : 0;
+    visiblePoints.push([
+      segment.start[0] + (segment.end[0] - segment.start[0]) * segmentProgress,
+      segment.start[1] + (segment.end[1] - segment.start[1]) * segmentProgress,
+    ]);
+    break;
+  }
+
+  const position = visiblePoints.at(-1);
+  return {
+    points: visiblePoints.map(([x, y]) => `${x},${y}`).join(" "),
+    position,
   };
 }
 
@@ -379,9 +413,9 @@ function LadderGame() {
   const [selectedLadderStart, setSelectedLadderStart] = useState(null);
   const [revealedLadderResult, setRevealedLadderResult] = useState(null);
   const [showAllLadderResults, setShowAllLadderResults] = useState(false);
-  const [ladderRunId, setLadderRunId] = useState(0);
+  const [ladderProgress, setLadderProgress] = useState(0);
   const [isLadderRunning, setIsLadderRunning] = useState(false);
-  const ladderRunTimeoutRef = useRef(null);
+  const ladderAnimationFrameRef = useRef(null);
   const ladderRunningRef = useRef(false);
 
   const ladderColumnPositions = useMemo(
@@ -393,6 +427,11 @@ function LadderGame() {
       ? null
       : traceLadderPath(selectedLadderStart, ladderRows, ladderPlayerCount)
   ), [ladderPlayerCount, ladderRows, selectedLadderStart]);
+  const visibleLadderPath = useMemo(() => (
+    selectedLadderPath
+      ? getLadderProgressPath(selectedLadderPath.pointPairs, ladderProgress)
+      : null
+  ), [ladderProgress, selectedLadderPath]);
   const allLadderMappings = useMemo(() => (
     ladderRows.length
       ? Array.from({ length: ladderPlayerCount }, (_, index) => ({
@@ -403,16 +442,17 @@ function LadderGame() {
   ), [ladderPlayerCount, ladderRows]);
 
   useEffect(() => () => {
-    window.clearTimeout(ladderRunTimeoutRef.current);
+    window.cancelAnimationFrame(ladderAnimationFrameRef.current);
   }, []);
 
   const clearLadderRun = () => {
-    window.clearTimeout(ladderRunTimeoutRef.current);
+    window.cancelAnimationFrame(ladderAnimationFrameRef.current);
     ladderRunningRef.current = false;
     setIsLadderRunning(false);
     setSelectedLadderStart(null);
     setRevealedLadderResult(null);
     setShowAllLadderResults(false);
+    setLadderProgress(0);
   };
 
   const updateLadderPlayerCount = (nextCount) => {
@@ -438,20 +478,31 @@ function LadderGame() {
   const runLadder = (startIndex) => {
     if (ladderRunningRef.current || !ladderRows.length) return;
 
-    window.clearTimeout(ladderRunTimeoutRef.current);
+    window.cancelAnimationFrame(ladderAnimationFrameRef.current);
     ladderRunningRef.current = true;
     setIsLadderRunning(true);
     setShowAllLadderResults(false);
     setRevealedLadderResult(null);
     setSelectedLadderStart(startIndex);
-    setLadderRunId((currentId) => currentId + 1);
+    setLadderProgress(0);
 
     const destination = traceLadderPath(startIndex, ladderRows, ladderPlayerCount).destination;
-    ladderRunTimeoutRef.current = window.setTimeout(() => {
+    const startedAt = window.performance.now();
+    const advanceLadder = (currentTime) => {
+      const progress = Math.min(1, (currentTime - startedAt) / LADDER_RUN_DURATION_MS);
+      setLadderProgress(progress);
+
+      if (progress < 1) {
+        ladderAnimationFrameRef.current = window.requestAnimationFrame(advanceLadder);
+        return;
+      }
+
       ladderRunningRef.current = false;
       setIsLadderRunning(false);
       setRevealedLadderResult(destination);
-    }, LADDER_RUN_DURATION_MS);
+    };
+
+    ladderAnimationFrameRef.current = window.requestAnimationFrame(advanceLadder);
   };
 
   return (
@@ -585,20 +636,18 @@ function LadderGame() {
                 ))
               ))}
 
-              {selectedLadderPath && (
-                <g key={`ladder-run-${ladderRunId}`}>
+              {visibleLadderPath && (
+                <g>
                   <polyline
-                    className="ladder-selected-path is-animated"
-                    points={selectedLadderPath.points}
-                    pathLength="1"
+                    className="ladder-selected-path"
+                    points={visibleLadderPath.points}
                   />
-                  <circle className="ladder-runner" r="10">
-                    <animateMotion
-                      dur={`${LADDER_RUN_DURATION_MS}ms`}
-                      path={selectedLadderPath.motionPath}
-                      fill="freeze"
-                    />
-                  </circle>
+                  <circle
+                    className="ladder-runner"
+                    cx={visibleLadderPath.position[0]}
+                    cy={visibleLadderPath.position[1]}
+                    r="10"
+                  />
                 </g>
               )}
             </svg>

@@ -6463,24 +6463,12 @@ html[data-theme="dark"] .ladder-all-results b {
   opacity: 0.72;
 }
 
-.ladder-selected-path.is-animated {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: ladder-route-draw 2.8s linear forwards;
-}
-
 .ladder-runner {
   fill: #fff;
   stroke: #159fdb;
   stroke-width: 6;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 4px 6px rgba(26, 148, 202, 0.36));
-}
-
-@keyframes ladder-route-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
 }
 
 /* Bichon quiz */
@@ -6602,6 +6590,10 @@ html[data-theme="dark"] .ladder-all-results b {
 .quiz-cover input:focus {
   border-color: #50add7;
   outline: 3px solid rgba(80, 173, 215, 0.14);
+}
+
+.quiz-cover > .form-error {
+  margin: 10px 0 -2px;
 }
 
 .quiz-primary-button {
