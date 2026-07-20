@@ -1428,15 +1428,15 @@ function App() {
 
   const pageLoadingOverlay = pageLoading && (
     <div className="page-loading-overlay" role="status" aria-live="polite" aria-label="페이지를 불러오는 중">
-      <div className="loading-scene" aria-hidden="true">
-        <span className="loading-portal loading-portal-back" />
-        <span className="loading-portal loading-portal-front" />
-        <div className="loading-mascot-track">
-          <img src={LOADING_MASCOT_URL} alt="" />
+      <div className="loading-card">
+        <div className="loading-scene" aria-hidden="true">
+          <div className="loading-mascot-track">
+            <img src={LOADING_MASCOT_URL} alt="" />
+          </div>
         </div>
+        <div className="loading-spinner" aria-hidden="true" />
+        <strong>LOADING</strong>
       </div>
-      <div className="loading-spinner" aria-hidden="true" />
-      <strong>LOADING</strong>
     </div>
   );
 
