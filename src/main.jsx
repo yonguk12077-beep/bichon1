@@ -83,7 +83,7 @@ const APP_RAIL_ITEMS = [
   { id: "hotclips", label: "핫클립", icon: "✦", route: HOTCLIP_ROUTE },
   { id: "gallery", label: "팬아트", icon: "▧", route: FANART_ROUTE },
   { id: "upbo", label: "시트지", icon: "▤", route: UPBO_ROUTE },
-  { id: "minigame", label: "미니게임", icon: "⚄", route: MINIGAME_ROUTE },
+  { id: "minigame", label: "쉼터", icon: "♧", route: MINIGAME_ROUTE },
 ];
 
 const MOBILE_APP_ITEMS = APP_RAIL_ITEMS.filter((item) =>
@@ -2102,11 +2102,11 @@ function App() {
                 className="home-minigame-panel"
                 type="button"
                 onClick={() => openInternalPage(MINIGAME_ROUTE)}
-                aria-label="미니게임 페이지 열기"
+                aria-label="솜뭉치 쉼터 열기"
               >
                 <div>
-                  <small>MINI GAME</small>
-                  <h3>미니게임</h3>
+                  <small>PLAY LOUNGE</small>
+                  <h3>솜뭉치 쉼터</h3>
                 </div>
                 <span>PLAY</span>
               </button>
