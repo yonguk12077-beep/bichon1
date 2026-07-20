@@ -5662,12 +5662,11 @@ html[data-theme="dark"] .minigame-option-chips span {
   }
 }
 
-/* Lounge game launcher and fortune cookie */
+/* Lounge game launcher */
 .minigame-hub-grid {
-  width: min(100%, 520px);
+  width: min(100%, 220px);
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .minigame-hub-card {
@@ -5695,8 +5694,7 @@ html[data-theme="dark"] .minigame-option-chips span {
   transform: translateY(-3px);
 }
 
-.minigame-hub-card:focus-visible,
-.fortune-cookie-button:focus-visible {
+.minigame-hub-card:focus-visible {
   outline: 3px solid rgba(50, 166, 220, 0.28);
   outline-offset: 3px;
 }
@@ -5714,11 +5712,6 @@ html[data-theme="dark"] .minigame-option-chips span {
   font-weight: 1000;
 }
 
-.minigame-hub-card.is-fortune .minigame-hub-icon {
-  border-color: #ebd29c;
-  background: #fff8e8;
-}
-
 .minigame-hub-card small {
   color: #65a8c8;
   font-size: 9px;
@@ -5731,121 +5724,7 @@ html[data-theme="dark"] .minigame-option-chips span {
   font-weight: 1000;
 }
 
-.fortune-cookie-game {
-  width: min(100%, 760px);
-  min-height: 430px;
-  padding: 28px;
-  border: 1px solid #cfe3ee;
-  border-radius: 8px;
-  background: #fff;
-  display: grid;
-  grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
-  grid-template-rows: auto 1fr auto;
-  gap: 18px 28px;
-  align-items: center;
-  box-shadow: 0 16px 38px rgba(40, 104, 136, 0.08);
-}
-
-.fortune-cookie-game .minigame-panel-title {
-  grid-column: 1 / -1;
-  margin: 0;
-}
-
-.fortune-cookie-button {
-  width: 180px;
-  height: 180px;
-  justify-self: center;
-  padding: 0;
-  border: 1px solid #ebd39e;
-  border-radius: 50%;
-  background: #fff9eb;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: 0 18px 34px rgba(147, 106, 30, 0.13);
-}
-
-.fortune-cookie-button:disabled {
-  cursor: wait;
-}
-
-.fortune-cookie-visual {
-  display: block;
-  font-size: 92px;
-  line-height: 1;
-  filter: drop-shadow(0 10px 10px rgba(116, 74, 16, 0.16));
-  transform-origin: 50% 65%;
-}
-
-.fortune-cookie-game.is-opening .fortune-cookie-visual {
-  animation: fortune-cookie-shake 0.18s ease-in-out infinite alternate;
-}
-
-.fortune-cookie-game.is-open .fortune-cookie-visual {
-  transform: rotate(-8deg) scale(0.94);
-}
-
-.fortune-ticket {
-  min-height: 190px;
-  padding: 24px;
-  border: 1px solid #e9d6a8;
-  border-radius: 8px;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.48)),
-    #fff8e8;
-  display: grid;
-  align-content: center;
-  gap: 10px;
-}
-
-.fortune-ticket small {
-  color: #b47b25;
-  font-size: 10px;
-  font-weight: 1000;
-}
-
-.fortune-ticket strong {
-  color: #4a3b29;
-  font-size: clamp(18px, 2.3vw, 25px);
-  font-weight: 1000;
-  line-height: 1.55;
-  overflow-wrap: anywhere;
-}
-
-.fortune-cookie-game.is-open .fortune-ticket {
-  animation: fortune-ticket-reveal 0.35s ease both;
-}
-
-.fortune-draw-button {
-  grid-column: 1 / -1;
-  width: min(100%, 320px);
-  justify-self: center;
-}
-
-@keyframes fortune-cookie-shake {
-  from {
-    transform: rotate(-7deg) scale(0.98);
-  }
-
-  to {
-    transform: rotate(7deg) scale(1.04);
-  }
-}
-
-@keyframes fortune-ticket-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-html[data-theme="dark"] .minigame-hub-card,
-html[data-theme="dark"] .fortune-cookie-game {
+html[data-theme="dark"] .minigame-hub-card {
   border-color: #35434a;
   background: #20272b;
   color: #e7eff2;
@@ -5862,38 +5741,13 @@ html[data-theme="dark"] .minigame-hub-icon {
   color: #8ed3f0;
 }
 
-html[data-theme="dark"] .minigame-hub-card.is-fortune .minigame-hub-icon {
-  border-color: #635538;
-  background: #352f22;
-}
-
 html[data-theme="dark"] .minigame-hub-card small {
   color: #84bcd6;
 }
 
-html[data-theme="dark"] .fortune-cookie-button {
-  border-color: #67583b;
-  background: #342f23;
-  box-shadow: none;
-}
-
-html[data-theme="dark"] .fortune-ticket {
-  border-color: #66583d;
-  background: #322d22;
-}
-
-html[data-theme="dark"] .fortune-ticket small {
-  color: #e1b566;
-}
-
-html[data-theme="dark"] .fortune-ticket strong {
-  color: #f1e7d3;
-}
-
 @media (max-width: 680px) {
   .minigame-hub-grid {
-    width: 100%;
-    gap: 10px;
+    width: min(100%, 190px);
   }
 
   .minigame-hub-card {
@@ -5904,39 +5758,5 @@ html[data-theme="dark"] .fortune-ticket strong {
     width: 58px;
     height: 58px;
     font-size: 28px;
-  }
-
-  .fortune-cookie-game {
-    min-height: 0;
-    padding: 20px;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
-    gap: 16px;
-  }
-
-  .fortune-cookie-game .minigame-panel-title,
-  .fortune-draw-button {
-    grid-column: 1;
-  }
-
-  .fortune-cookie-button {
-    width: 140px;
-    height: 140px;
-  }
-
-  .fortune-cookie-visual {
-    font-size: 72px;
-  }
-
-  .fortune-ticket {
-    min-height: 150px;
-    padding: 20px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fortune-cookie-game.is-opening .fortune-cookie-visual,
-  .fortune-cookie-game.is-open .fortune-ticket {
-    animation: none;
   }
 }
